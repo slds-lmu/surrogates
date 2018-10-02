@@ -1,0 +1,55 @@
+- surrogates kommen in ihr eigenes repo
+- in das repo kommt NIX anderes außer das erstellen und benchmarken der surrogates
+- dieses repo wird extrem aufgreäumt und ordentlich sein, mit einer schönen README
+
+
+R6 Klasse: Surrogate
+
+members 
+  task [mlr::RegrTask]
+  learner [mlr::Learner]
+  model [mlr::WrappedModel]
+  param_set [mlr::ParamSet] 
+
+methods:
+
+- init(oml_task_id [int], base_learner [string], measure [string], use_cache [bool]) 
+  if task is on disk --> load it
+  if model is on disk --> load it
+
+- acquire_task()
+  obtains task data from random bot, creates RegrTask
+  a) [currently]: reads the data from the figshare CSV files
+  b) [later]: downloads repective mlrRandomBot data
+  target in task is called by <measure> name
+  sets member var "task"
+  task is filed to disk, path is AB "path_task" 
+  tasks are stored as RDS in folder "surrogate_tasks"
+  naming scheme is surrtask_<omltaskid>_<measure>_<baselearner>.rds
+- fit_model(lrn)
+  stores model and saves it to disk
+
+active bindings:
+- filename_task [string]
+  naming scheme is surrtask_<omltaskid>_<measure>_<baselearner>.rds
+- filename_model [string]
+  naming scheme is surrmodel_<omltaskid>_<measure>_<baselearner>.rds
+- path_task [string]
+- path_model [string]
+- in_cache_task [bool]
+- in_cache_model [bool]
+
+
+- config.R
+  -- OML_TASK_IDS
+  -- BASE_LEARNERS
+  -- MEASURES
+
+- run_all:
+  läuft über die config und macht alles. kann man das in stages aufteilken?
+
+wo werden die param ranges der baselearner sinnvoll definiert? 
+die kommen ja aus dem random bot?
+können wir drake benutzen?
+
+
