@@ -1,16 +1,21 @@
 source("Surrogate.R")
+source("par_sets.R")
+fail_handle = fail("fail_data2")
 
-fail_handle = fail("fail_data")
-
-s = Surrogate$new(fail_handle, oml_task_id = 12, baselearner_name = "knn", 
-  measure_name = "auc", hp_names = "lambda")
+s = Surrogate$new(fail_handle, oml_task_id = 31, baselearner_name = "glmnet",
+  measure_name = "auc", hp_names = "lambda", learner = "regr.ranger")
 print(s)
+s$oml_task_info
 print(s$in_cache_rtask)
 print(s$in_cache_model)
-# s$file_rtask_to_disk()
-# print(s$in_cache_rtask)
-# print(s$in_cache_model)
+s$file_rtask_to_disk()
+print(s$in_cache_rtask)
+print(s$in_cache_model)
+print(s$rtask)
 s$acquire_rtask()
 s$acquire_model()
 print(s)
-
+print(s$model)
+# s$acquire_object("resample")
+# print(s)
+s$predict(data.frame("lambda" = c(0.1, 1)))

@@ -5,15 +5,15 @@
 
 R6 Klasse: Surrogate
 
-members 
-  task [mlr::RegrTask]
+members
+  rtask [mlr::RegrTask]
   learner [mlr::Learner]
   model [mlr::WrappedModel]
-  param_set [mlr::ParamSet] 
+  param_set [mlr::ParamSet]
 
 methods:
 
-- init(oml_task_id [int], base_learner [string], measure [string], use_cache [bool]) 
+- init(oml_task_id [int], base_learner [string], measure [string], use_cache [bool])
   if task is on disk --> load it
   if model is on disk --> load it
 
@@ -23,7 +23,7 @@ methods:
   b) [later]: downloads repective mlrRandomBot data
   target in task is called by <measure> name
   sets member var "task"
-  task is filed to disk, path is AB "path_task" 
+  task is filed to disk, path is AB "path_task"
   tasks are stored as RDS in folder "surrogate_tasks"
   naming scheme is surrtask_<omltaskid>_<measure>_<baselearner>.rds
 - fit_model(lrn)
@@ -48,7 +48,7 @@ active bindings:
 - run_all:
   läuft über die config und macht alles. kann man das in stages aufteilken?
 
-wo werden die param ranges der baselearner sinnvoll definiert? 
+wo werden die param ranges der baselearner sinnvoll definiert?
 die kommen ja aus dem random bot?
 können wir drake benutzen?
 
