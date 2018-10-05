@@ -116,7 +116,7 @@ Surrogate = R6Class("Surrogate",
         }
       )
     },
-    fail_path = function() paste(self$baselearner_name, paste0(self$learner$short.name, "_surrogate"), self$measure_name, self$scaling, sep = "/")
+    fail_path = function() paste("surrogates", self$baselearner_name, paste0(self$learner$short.name, "_surrogate"), self$measure_name, self$scaling, sep = "/")
   ),
   active = list(
     key_base = function() sprintf("%i_%s_%s",
