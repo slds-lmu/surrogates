@@ -1,7 +1,8 @@
 - surrogates kommen in ihr eigenes repo
 - in das repo kommt NIX anderes außer das erstellen und benchmarken der surrogates
 - dieses repo wird extrem aufgreäumt und ordentlich sein, mit einer schönen README
-
+- FIXME: What do we do about models trained on different feature subsets?
+- FIXME: What do we do about models trained with different hyper params
 
 R6 Klasse: Surrogate
 
@@ -9,7 +10,7 @@ members
   rtask [mlr::RegrTask]
   learner [mlr::Learner]
   model [mlr::WrappedModel]
-  param_set [mlr::ParamSet]
+  par_set [mlr::ParamSet]
 
 methods:
 

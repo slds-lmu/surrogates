@@ -1,9 +1,9 @@
 source("Surrogate.R")
 source("par_sets.R")
-fail_handle = fail("fail_data2")
-
-s = Surrogate$new(fail_handle, oml_task_id = 31, baselearner_name = "glmnet",
+s = Surrogate$new(oml_task_id = 31, baselearner_name = "glmnet",
+  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
   measure_name = "auc", hp_names = "lambda", learner = "regr.ranger")
+
 print(s)
 s$oml_task_info
 print(s$in_cache_rtask)
@@ -16,6 +16,26 @@ s$acquire_rtask()
 s$acquire_model()
 print(s)
 print(s$model)
-# s$acquire_object("resample")
-# print(s)
 s$predict(data.frame("lambda" = c(0.1, 1)))
+
+
+s = Surrogate$new(oml_task_id = 31, baselearner_name = "glmnet",
+  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
+  measure_name = "auc", hp_names = "lambda", learner = "regr.cubist")
+s$acquire_resample()
+
+surrogate.mlr.lrn = makeLearner("regr.cubist", committees = 20, extrapolation = 20)
+s = Surrogate$new(oml_task_id = 31, baselearner_name = "glmnet",
+  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
+  measure_name = "auc", learner = surrogate.mlr.lrn)
+s$acquire_resample()
+
+s = Surrogate$new(oml_task_id = 31, baselearner_name = "glmnet",
+  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
+  measure_name = "auc", learner = "regr.ranger")
+s$acquire_resample()
+
+
+
+
+

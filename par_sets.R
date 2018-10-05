@@ -1,7 +1,11 @@
-get_par_set = function(lrn) {
+get_par_set = function(lrn.cl) {
 
-  lrn.cl = stringi::stri_paste("classif.", lrn)
-  checkmate::assert_choice(lrn.cl, c("classif.glmnet", "classif.rpart", "classif.kknn", "classif.ranger", "classif.xgboost"))
+  if (stringi::stri_sub(lrn.cl, 1, 8) != "classif.")
+    lrn.cl = stringi::stri_paste("classif.", lrn.cl)
+
+  if (!checkmate::check_choice(lrn.cl, c("classif.glmnet", "classif.rpart",
+    "classif.kknn", "classif.ranger", "classif.xgboost")))
+    stop(sprintf("No parameter set for %s available, please supply a param set!", lrn))
 
   switch(lrn.cl,
   "classif.glmnet" = makeParamSet(
@@ -46,4 +50,9 @@ get_par_set = function(lrn) {
       makeNumericParam("alpha", lower = -10, upper = 10, trafo = function(x) 2^x,
         requires = quote(booster == "gblinear")))
   )
+}
+
+assert_param_set = function(ps) {
+  if (ParamHelpers::checkParamSet(ps))
+    return(ps)
 }
