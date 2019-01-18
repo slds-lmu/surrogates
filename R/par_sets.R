@@ -1,10 +1,10 @@
-get_par_set = function(lrn.cl) {
+get_param_set = function(lrn.cl) {
 
   if (stringi::stri_sub(lrn.cl, 1, 8) != "classif.")
     lrn.cl = stringi::stri_paste("classif.", lrn.cl)
 
   if (!checkmate::check_choice(lrn.cl, c("classif.glmnet", "classif.rpart",
-    "classif.kknn", "classif.ranger", "classif.xgboost")))
+    "classif.kknn", "classif.ranger", "classif.xgboost", "classif.svm")))
     stop(sprintf("No parameter set for %s available, please supply a param set!", lrn))
 
   switch(lrn.cl,

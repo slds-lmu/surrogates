@@ -1,0 +1,25 @@
+Package: surrogates
+Title: Construct surrogates from OpenML or local files
+Version: 0.0.0.9000
+Authors@R:
+    person(given = "First",
+           family = "Last",
+           role = c("aut", "cre"),
+           email = "first.last@example.com")
+Description: Allows for the construction of surrogates from a given meta-data dataset of
+             hyperparameters and a given performance.
+License: What license it uses
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R6,
+    fail,
+    BBmisc,
+    mlr,
+    data.table,
+    checkmate
+Suggests:
+    testthat,
+    OpenML
+Imports:
+    ParamHelpers

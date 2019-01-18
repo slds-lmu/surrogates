@@ -7,35 +7,33 @@
 #        passing setup.ids explodes the url string and without subsetting
 #        we have to query way too much unneccessary data.
 
-library(OpenML)
-library(mlr)
 
 # Put the results into a table
 # get performances
 
-listOMLRunEvaluations(tag = "botV1",
- evaluation.measure = "area_under_roc_curve",
-  limit = 1000))
-# subset results on some information(s) and measure(s)
-my_runs = my_runs[, c("run.id", "task.id", "area.under.roc.curve" )]
+# listOMLRunEvaluations(tag = "botV1",
+#  evaluation.measure = "area_under_roc_curve",
+#   limit = 1000))
+# # subset results on some information(s) and measure(s)
+# my_runs = my_runs[, c("run.id", "task.id", "area.under.roc.curve" )]
 
-# get hyperparameters
-runs = listOMLRuns(tag = "botV1", task.id = 31, limit = 10000)
-paras = listOMLSetup(runs$setup.id)
-paras_names = names()
-paras = paras[paras$parameter.name %in% paras_names, c("setup.id", "parameter.name", "value")]
-library(tidyr)
-library(dplyr)
-paras = spread(paras, key = parameter.name, value = value)
-paras = merge(paras, runs[, c("run.id", "setup.id")], key = "setup.id")
-paras = select(paras, -setup.id)
+# # get hyperparameters
+# runs = listOMLRuns(tag = "botV1", task.id = 31, limit = 10000)
+# paras = listOMLSetup(runs$setup.id)
+# paras_names = names()
+# paras = paras[paras$parameter.name %in% paras_names, c("setup.id", "parameter.name", "value")]
+# library(tidyr)
+# library(dplyr)
+# paras = spread(paras, key = parameter.name, value = value)
+# paras = merge(paras, runs[, c("run.id", "setup.id")], key = "setup.id")
+# paras = select(paras, -setup.id)
 
-# Put things together
-results = merge(my_runs, paras, by = "run.id")
-# Put it in a nice order
-results = results[, c(setdiff(names(results), "area.under.roc.curve"), "area.under.roc.curve")]
-# Now you can compare the performances of your different hyperparameters
-print(head(results))
+# # Put things together
+# results = merge(my_runs, paras, by = "run.id")
+# # Put it in a nice order
+# results = results[, c(setdiff(names(results), "area.under.roc.curve"), "area.under.roc.curve")]
+# # Now you can compare the performances of your different hyperparameters
+# print(head(results))
 
 
 
@@ -77,7 +75,7 @@ get_params = function(base_learner, task.id, paras_names) {
   flows = get_flow_ids(base_learner)
   runs = get_runs(base_learner, task.id)
   setups = split(runs$setup.id, ceiling(seq_len(nrow(runs))/100))
-  for(i = seq_len(length(setups))) {
+  for(i in seq_len(length(setups))) {
     data = listOMLSetup(flow.id = flows, setup.id = setups[[i]])
     data = data[data$parameter.name %in% paras_names, c("setup.id", "parameter.name", "value")]
     data = tidyr::spread(data, key = parameter.name, value = value)
@@ -87,7 +85,7 @@ get_params = function(base_learner, task.id, paras_names) {
   return(params)
 }
 
-base_learner = "glmnet"
-runz = get_runs(base_learner, 31)
-parz = get_params(base_learner, c("alpha", "lambda"))
-data = merge(data, runs[, c("run.id", "setup.id")], key = "setup.id")
+# base_learner = "glmnet"
+# runz = get_runs(base_learner, 31)
+# parz = get_params(base_learner, c("alpha", "lambda"))
+# data = merge(data, runs[, c("run.id", "setup.id")], key = "setup.id")
