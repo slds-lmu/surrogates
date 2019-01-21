@@ -75,12 +75,14 @@ SurrogateFromRDS = R6Class("SurrogateLocalFile",
   ),
   private = list(
     get_data_from_source = function() {
+      # We globally scale performances before subsetting learner
       require(dplyr)
       d = readRDS(self$data_source) %>%
-      filter(measure == self$measure_name) %>%
-      filter(learner_id == paste0("mlr.classif.", self$baselearner_name)) %>%
-      filter(task_id == self$oml_task_id) %>%
       ungroup() %>%
+      filter(measure == self$measure_name) %>%
+      filter(task_id == self$oml_task_id) %>%
+      mutate(performance = self$scale_fun(performance)) %>%
+      filter(learner_id == paste0("mlr.classif.", self$baselearner_name)) %>%
       select(one_of(c("performance", self$param_names))) %>%
       as.data.frame()
     }

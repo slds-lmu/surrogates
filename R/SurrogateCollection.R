@@ -11,34 +11,80 @@
 SurrogateCollection = R6Class("SurrogateCollection",
   public = list(
     surrogates = NULL,
+    oml_task_ids = NULL,
+    holdout_task_id = NULL,
+    aggfun = NULL,
+    active = NULL,
+
     initialize = function(surrogates) {
       self$surrogates = surrogates
-      names(self$surrogates) = vcapply(self$surrogates, function(x) x$key_base)
+      names(self$surrogates) = vcapply(surrogates, function(x) x$key_base)
+      self$oml_task_ids = vnapply(self$surrogates, function(x) x$oml_task_id)
+      self$active = rep(TRUE, length(self$surrogates))
     },
-    predict = function(newdata, oml_task_ids = NULL, baselearners = NULL, measures = NULL) {
 
+    subset_surrogates = function(oml_task_ids, baselearner, measure) {
       assert_choice(oml_task_ids, unique(self$oml_task_ids), null.ok = TRUE)
-      assert_choice(baselearners, unique(self$baselearners), null.ok = TRUE)
-      assert_choice(measures, unique(self$measures), null.ok = TRUE)
+      assert_choice(baselearner, unique(self$baselearners), null.ok = TRUE)
+      assert_choice(measure, unique(self$measures), null.ok = TRUE)
 
-      # Deselect surrogates if required
-      use_task = seq_along(self$surrogates)
-      use_bls  = seq_along(self$surrogates)
-      use_meas = seq_along(self$surrogates)
-      if (!is.null(oml_task_ids)) use_task = which(self$oml_task_ids %in% oml_task_ids)
-      if (!is.null(baselearners)) use_bls = which(self$baselearners %in% baselearners)
-      if (!is.null(measures)) use_meas = which(self$measures %in% measures)
-      use_surrogates = Reduce(intersect, list(use_task, use_bls, use_meas))
+      # If null, active tasks else specific task
+      if (is.null(oml_task_ids)) use_task = which(self$oml_task_ids %in% self$oml_task_ids_active)
+      else use_task = which(self$oml_task_ids %in% oml_task_ids)
 
+      if (is.null(baselearner)) use_bls  = seq_along(self$surrogates)
+      else use_bls = which(self$baselearners %in% baselearner)
+
+      if (is.null(measure)) use_meas  = seq_along(self$surrogates)
+      else use_meas = which(self$measures %in% measures)
+
+      Reduce(intersect, list(use_task, use_bls, use_meas))
+    },
+
+    # Predict a single baselearner
+    predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL, measures = NULL) {
+      use_surrogates = self$subset_surrogates(oml_task_ids, baselearner, measures)
       prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata))
-      do.call("cbind", prds)
+      prds = do.call("cbind", prds)
+      return(prds)
+    },
+
+    # Predict on a list of [newdata], named with [baselearners]
+    predict = function(newdata, oml_task_ids = NULL, baselearners = NULL, measures = NULL) {
+      assert_list(newdata, names = "named")
+
+      if (is.null(baselearners)) {
+        baselearners = names(newdata)
+      }
+
+      prds = lapply(baselearners, function(bl) {
+	      self$predict_bl(newdata[[bl]], oml_task_ids, bl, measures)
+	    })
+      names(prds) = baselearners
+
+      # Perhaps aggregate
+      if(!is.null(self$aggfun))
+	      prds = self$aggfun(prds)
+
+      return(prds)
+    },
+    # Predict on the held-out data.
+    evaluate_holdout_task = function(newdata) {
+      self$predict(newdata, self$holdout_task_id, NULL, NULL)
+    },
+    set_holdout_task = function(oml_task_id) {
+      assert_choice(oml_task_id, self$oml_task_ids, null.ok = TRUE)
+      self$holdout_task_id = oml_task_id
+      self$active = !(self$oml_task_ids %in% oml_task_id)
     }
   ),
   active = list(
-    oml_task_ids = function() vnapply(self$surrogates, function(x) x$oml_task_id),
+    surrogates_active = function() self$surrogates[self$active],
+    oml_task_ids_active = function() unique(vnapply(self$surrogates_active, function(x) x$oml_task_id)),
     baselearners = function() vcapply(self$surrogates, function(x) x$baselearner_name),
     measures = function() vcapply(self$surrogates, function(x) x$measure_name),
-    surrogate_learners = function() vcapply(self$surrogates, function(x) x$measure_name),
-    param_names = function() lapply(self$surrogates, function(x) x$measure_name)
+    param_names = function() lapply(self$surrogates_active, function(x) x$param_names),
+    surrogate_learner = function() vcapply(self$surrogates, function(x) {x$surrogate_learner$short.name}),
+    scaling = function() vcapply(self$surrogates, function(x) {x$scaling})
   )
 )

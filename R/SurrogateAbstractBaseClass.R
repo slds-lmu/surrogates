@@ -50,6 +50,7 @@ Surrogate = R6Class("Surrogate",
     model = NULL,
     resample = NULL,
     scaling = "normalize",
+    scale_fun_pars = NULL,
 
     initialize = function(oml_task_id, baselearner_name, measure_name, surrogate_learner,
       param_names = NULL, param_set, use_cache = TRUE, fail_handle, data_source) {
@@ -57,7 +58,7 @@ Surrogate = R6Class("Surrogate",
       self$measure_name = assert_string(measure_name, null.ok = TRUE)
       self$baselearner_name = assert_string(baselearner_name)
       self$param_set = ifelse(missing(param_set), list(get_param_set(self$baselearner_name)), list(assert_param_set(param_set)))[[1]]
-      self$param_names = ifelse(missing(param_names), list(getParamIds(self$param_set)) , list(assert_choice(param_set, getParamIds(self$param_set))))[[1]]
+      self$param_names = ifelse(missing(param_names), list(getParamIds(self$param_set)) , list(assert_choice(param_names, getParamIds(self$param_set))))[[1]]
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
       self$use_cache = checkmate::assert_flag(use_cache)
       self$fail_handle = if(missing(fail_handle)) fail::fail(self$fail_path()) else assert_path_for_output(fail_handle)
@@ -71,13 +72,14 @@ Surrogate = R6Class("Surrogate",
       catf("Performance: %s", ifelse(is.null(self$resample), "N/A", self$resample$aggr))
     },
 
-    predict = function(newdata) {
+    predict = function(newdata, rescale = FALSE) {
       self$acquire_model()
       checkmate::assert_data_frame(newdata)
       checkmate::assert_subset(self$param_names, colnames(newdata))
       newdata = newdata[, self$param_names, drop = FALSE]
       prd = predict(self$model, newdata = newdata)
-      return(prd$data$response)
+      if (rescale) return(self$rescale_fun(prd$data$response))
+      else return(prd$data$respons)
     },
 
     file_rtask_to_disk = function() {
@@ -101,9 +103,6 @@ Surrogate = R6Class("Surrogate",
           d = do.call("cbind", list(d[, !which.logical], lapply(d[, which.logical], function(x) as.factor(as.character(x)))))
         d$performance = 0.0
       }
-
-      # Subset task and scale measure column
-      d$performance =  self$scale_fun()(d$performance)
       # attributes(d$target) = NULL # https://github.com/imbs-hl/ranger/issues/354
       catf("<Obtaining Task>")
       tsk = makeRegrTask(id = self$key_rtask, data = d, target = "performance")
@@ -140,19 +139,13 @@ Surrogate = R6Class("Surrogate",
     acquire_model = function() self$acquire_object("model"),
     train = function() self$acquire_model(),
     acquire_resample = function() self$acquire_object("resample"),
-    scale_fun = function() {
-      switch(self$scaling,
-        "normalize" = function(x) {
-          if (min(x) == max(x)) {
-            0.5
-          } else {
-            (x - min(x)) / (max(x) - min(x))
-          }
-        },
-        "scale" = function(x) {
-        sd = ifelse(sd(x) == 0, 0, (x - mean(x)) / sd(x))
-        }
-      )
+    scale_fun = function(x) {
+      self$scale_fun_pars = c(min = min(x), max = max(x))
+      if (min(x) == max(x)) {
+        0.5
+      } else {
+        (x - min(x)) / (max(x) - min(x))
+      }
     },
     fail_path = function() {
       paste("surrogates", self$baselearner_name,
