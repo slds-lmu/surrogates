@@ -57,8 +57,8 @@ SurrogateCollection = R6Class("SurrogateCollection",
         baselearners = names(newdata)
       }
 
-      prds = lapply(baselearners, function(bl) {
-	      self$predict_bl(newdata[[bl]], oml_task_ids, bl, measures)
+      prds = lapply(seq_along(baselearners), function(bl) {
+	      self$predict_bl(newdata[[bl]], oml_task_ids, baselearners[bl], measures)
 	    })
       names(prds) = baselearners
 
