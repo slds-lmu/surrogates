@@ -53,15 +53,15 @@ Surrogate = R6Class("Surrogate",
     scale_fun_pars = NULL,
 
     initialize = function(oml_task_id, baselearner_name, measure_name, surrogate_learner,
-      param_names = NULL, param_set, use_cache = TRUE, fail_handle, data_source) {
+      param_names = NULL, param_set, use_cache = TRUE, fail_handle, handle_prefix, data_source) {
       self$oml_task_id = assert_int(oml_task_id)
       self$measure_name = assert_string(measure_name, null.ok = TRUE)
       self$baselearner_name = assert_string(baselearner_name)
       self$param_set = ifelse(missing(param_set), list(get_param_set(self$baselearner_name)), list(assert_param_set(param_set)))[[1]]
-      self$param_names = ifelse(missing(param_names), list(getParamIds(self$param_set)) , list(assert_choice(param_names, getParamIds(self$param_set))))[[1]]
+      self$param_names = ifelse(missing(param_names), list(getParamIds(self$param_set)) , list(assert_subset(param_names, getParamIds(self$param_set))))[[1]]
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
       self$use_cache = checkmate::assert_flag(use_cache)
-      self$fail_handle = if(missing(fail_handle)) fail::fail(self$fail_path()) else assert_path_for_output(fail_handle)
+      self$fail_handle = if(missing(fail_handle)) fail::fail(self$fail_path(handle_prefix)) else assert_path_for_output(fail_handle)
     },
 
     print = function(...) {
@@ -140,6 +140,7 @@ Surrogate = R6Class("Surrogate",
     train = function() self$acquire_model(),
     acquire_resample = function() self$acquire_object("resample"),
     scale_fun = function(x) {
+      self$scaling = "normalize"
       self$scale_fun_pars = c(min = min(x), max = max(x))
       if (min(x) == max(x)) {
         0.5
@@ -147,8 +148,9 @@ Surrogate = R6Class("Surrogate",
         (x - min(x)) / (max(x) - min(x))
       }
     },
-    fail_path = function() {
-      paste("surrogates", self$baselearner_name,
+    fail_path = function(handle_prefix) {
+      assert_character(handle_prefix)
+      paste(handle_prefix, "surrogates", self$baselearner_name,
         paste0(self$surrogate_learner$short.name, "_surrogate"),
         self$measure_name, self$scaling, sep = "/"
       )

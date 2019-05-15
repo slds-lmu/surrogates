@@ -88,3 +88,33 @@ SurrogateFromRDS = R6Class("SurrogateLocalFile",
     }
   )
 )
+
+#'@title SurrogateLocalARFF
+#'
+#' @name SurrogateLocalARFF
+#' @format [R6Class] object
+#' @description
+#'
+#' Inherits from [Surrogate].
+#'
+#' Allows for the construction of surrogates from a given meta-data dataset (ARFF)
+#' of hyperparameters and a given performance.
+SurrogateLocalARFF = R6Class("SurrogateLocalARFF",
+  inherit = Surrogate,
+  public = list(
+    data_source = NULL,
+    initialize = function(data_source, ...) {
+      super$initialize(...)
+      self$data_source = assert_string(data_source)
+    }
+  ),
+  private = list(
+    get_data_from_source = function() {
+      d = as.data.frame(farff::readARFF(self$data_source))
+      d = d[d$task_id == self$oml_task_id, c(self$measure_name, self$param_names)]
+      colnames(d)[colnames(d) == self$measure_name] = "performance"
+      d$performance = self$scale_fun(d$performance)
+      return(d)
+    }
+  )
+)

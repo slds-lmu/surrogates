@@ -73,7 +73,7 @@ SurrogateCollection = R6Class("SurrogateCollection",
       self$predict(newdata, self$holdout_task_id, NULL, NULL)
     },
     set_holdout_task = function(oml_task_id) {
-      assert_choice(oml_task_id, self$oml_task_ids, null.ok = TRUE)
+      assert_subset(oml_task_id, self$oml_task_ids)
       self$holdout_task_id = oml_task_id
       self$active = !(self$oml_task_ids %in% oml_task_id)
     }
