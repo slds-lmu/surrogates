@@ -1,3 +1,17 @@
+# Surrogates for Machine Learning Algorithms
+
+The purpose of this model is to create a single **API** for different surrogates across algorithms, datasets and scalings. 
+
+What we want to achieve: 
+- Make training surrogate models across learners / datasets possible, allow training from different sources 
+  (csv / arff, OpenML, ...)
+- Unify storing of models and allow for fast read/write where requried.
+- Fast access to predictions for search on top of surrogates.
+- Consistency checks for models and parameters / parameter spaces. 
+- Beeing able to incorporate different surrogate learners / scalings.
+- Clean and fast **API** for training and obtaining predictions.
+
+
 ## Surrogates
 
 ```r
