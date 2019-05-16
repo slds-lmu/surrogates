@@ -140,12 +140,19 @@ Surrogate = R6Class("Surrogate",
     train = function() self$acquire_model(),
     acquire_resample = function() self$acquire_object("resample"),
     scale_fun = function(x) {
+      x = x[!is.na(x)]
+      # FIXME: Implement different options for this or expose BBmisc::normalize args
       self$scaling = "normalize"
+
       self$scale_fun_pars = c(min = min(x), max = max(x))
-      if (min(x) == max(x)) {
-        0.5
-      } else {
-        (x - min(x)) / (max(x) - min(x))
+      x = BBmisc::normalize(x, "range")
+
+      self$rescale_fun = function(x) {
+        if (min(x) == max(x)) {
+          self$scale_fun_pars$min
+        } else {
+          (x * (self$scale_fun_pars$max - self$scale_fun_pars$min)) + self$scale_fun_pars$min
+        }
       }
     },
     fail_path = function(handle_prefix) {
