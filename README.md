@@ -1,13 +1,13 @@
 # Surrogates for Machine Learning Algorithms
 
-The purpose of this model is to create a single **API** for different surrogates across algorithms, datasets and scalings. 
+The purpose of this model is to create a single **API** for different surrogates across algorithms, datasets and scalings.
 
-What we want to achieve: 
-- Make training surrogate models across learners / datasets possible, allow training from different sources 
+What we want to achieve:
+- Make training surrogate models across learners / datasets possible, allow training from different sources
   (csv / arff, OpenML, ...)
 - Unify storing of models and allow for fast read/write where requried.
 - Fast access to predictions for search on top of surrogates.
-- Consistency checks for models and parameters / parameter spaces. 
+- Consistency checks for models and parameters / parameter spaces.
 - Beeing able to incorporate different surrogate learners / scalings.
 - Clean and fast **API** for training and obtaining predictions.
 
@@ -16,10 +16,10 @@ What we want to achieve:
 
 ```r
 # Train surrogate from a local file.
-s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet",
-  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
+file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
+
+s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet", data_source = file,
   measure_name = "auc", param_names = "lambda", surrogate_learner = "regr.ranger")
-fail::fail(s$fail_path())
 s$file_rtask_to_disk()
 s$file_model_to_disk()
 s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1)))
@@ -27,8 +27,9 @@ s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1)))
 ## SurrogateCollection
 
 ```r
+# Use cubist as a learner.
 source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
-surrogate.mlr.lrn = makeLearner("regr.cubist", committees = 20, extrapolation = 20)
+surrogate.mlr.lrn = makeLearner("regr.fixcubist", committees = 20, extrapolation = 20)
 
 s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet",
   data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
