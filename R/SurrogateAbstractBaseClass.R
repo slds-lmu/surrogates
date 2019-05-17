@@ -50,7 +50,7 @@ Surrogate = R6Class("Surrogate",
     model = NULL,
     resample = NULL,
     scaling = "normalize",
-    handle_prefix = NULL
+    handle_prefix = NULL,
     scale_fun_pars = NULL,
 
     initialize = function(oml_task_id, baselearner_name, measure_name, surrogate_learner,
