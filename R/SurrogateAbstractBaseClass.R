@@ -50,6 +50,7 @@ Surrogate = R6Class("Surrogate",
     model = NULL,
     resample = NULL,
     scaling = "normalize",
+    handle_prefix = NULL
     scale_fun_pars = NULL,
 
     initialize = function(oml_task_id, baselearner_name, measure_name, surrogate_learner,
@@ -61,7 +62,8 @@ Surrogate = R6Class("Surrogate",
       self$param_names = ifelse(missing(param_names), list(getParamIds(self$param_set)) , list(assert_subset(param_names, getParamIds(self$param_set))))[[1]]
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
       self$use_cache = checkmate::assert_flag(use_cache)
-      self$fail_handle = if(missing(fail_handle)) fail::fail(self$fail_path(handle_prefix)) else assert_path_for_output(fail_handle)
+      self$fail_handle = if(!missing(fail_handle)) assert_path_for_output(fail_handle)
+      self$handle_prefix = assert_character(handle_prefix)
     },
 
     print = function(...) {
@@ -137,7 +139,11 @@ Surrogate = R6Class("Surrogate",
     },
     acquire_rtask = function() self$acquire_object("rtask"),
     acquire_model = function() self$acquire_object("model"),
-    train = function() self$acquire_model(),
+    train = function() {
+      # FIXME Clean this up, suboptimally placed here.
+      if(is.null(self$fail_path)) self$fail_path = fail::fail(self$fail_path(handle_prefix))
+      self$acquire_model()
+    },
     acquire_resample = function() self$acquire_object("resample"),
     scale_fun = function(x) {
       x = x[!is.na(x)]
@@ -148,7 +154,7 @@ Surrogate = R6Class("Surrogate",
         x = BBmisc::normalize(x, "range")
       } else {
         # In case we want to set the normalization from outside
-        self$scaling = "normalize_fixed_pars"
+        self$scaling = "normalize_fixed_range"
         x = BBmisc::normalize(x, "range", range = c(self$scale_fun_pars$min, self$scale_fun_pars$max))
       }
 
