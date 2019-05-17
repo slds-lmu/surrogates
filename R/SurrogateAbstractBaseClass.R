@@ -166,6 +166,10 @@ Surrogate = R6Class("Surrogate",
       if (!keep.model) self$model = NULL
       if (!keep.task) self$rtask = NULL
       self$fail_handle$put(keys = self$key_class, self)
+    },
+    update_scale_fun = function(fun) {
+      assert_function(fun)
+      self$scale_fun = fun
     }
   ),
   active = list(
