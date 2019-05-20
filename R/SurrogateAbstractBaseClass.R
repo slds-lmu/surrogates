@@ -54,7 +54,7 @@ Surrogate = R6Class("Surrogate",
     scale_fun_pars = NULL,
 
     initialize = function(oml_task_id, baselearner_name, measure_name, surrogate_learner,
-      param_names = NULL, param_set, use_cache = TRUE, fail_handle, handle_prefix, data_source) {
+      param_names = NULL, param_set, use_cache = TRUE, fail_handle, handle_prefix = NULL, data_source) {
       self$oml_task_id = assert_int(oml_task_id)
       self$measure_name = assert_string(measure_name, null.ok = TRUE)
       self$baselearner_name = assert_string(baselearner_name)
@@ -63,7 +63,7 @@ Surrogate = R6Class("Surrogate",
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
       self$use_cache = checkmate::assert_flag(use_cache)
       self$fail_handle = if(!missing(fail_handle)) assert_path_for_output(fail_handle)
-      self$handle_prefix = assert_character(handle_prefix)
+      self$handle_prefix = assert_character(handle_prefix, null.ok = TRUE)
     },
 
     print = function(...) {
@@ -141,7 +141,7 @@ Surrogate = R6Class("Surrogate",
     acquire_model = function() self$acquire_object("model"),
     train = function() {
       # FIXME Clean this up, suboptimally placed here.
-      if(is.null(self$fail_path)) self$fail_path = fail::fail(self$fail_path(handle_prefix))
+      if(is.null(self$fail_handle)) self$fail_handle = fail::fail(self$fail_path(self$handle_prefix))
       self$acquire_model()
     },
     acquire_resample = function() self$acquire_object("resample"),
@@ -167,7 +167,6 @@ Surrogate = R6Class("Surrogate",
       }
     },
     fail_path = function(handle_prefix) {
-      assert_character(handle_prefix)
       paste(handle_prefix, "surrogates", self$baselearner_name,
         paste0(self$surrogate_learner$short.name, "_surrogate"),
         self$measure_name, self$scaling, sep = "/"

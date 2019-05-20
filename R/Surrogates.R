@@ -26,34 +26,6 @@ SurrogateLocalFile = R6Class("SurrogateLocalFile",
   )
 )
 
-#'@title SurrogateOpenML
-#'
-#' @name SurrogateOpenML
-#' @format [R6Class] object
-#' @description
-#'
-#' Inherits from [Surrogate].
-#'
-#' Allows for the construction of surrogates from a given meta-data dataset
-#' obtained from OpenML.
-SurrogateOpenML = R6Class("SurrogateOpenML",
-  inherit = Surrogate,
-  public = list(
-    oml_bot_tag = NULL,
-    initialize = function(oml_bot_tag, ...) {
-      stop("Not implemented")
-      super$initialize(...)
-      self$oml_bot_tag = assert_string(oml_bot_tag)
-    }
-  ),
-  private = list(
-    get_data_from_source = function() {
-      # Some OpenML Magic needs to happen here
-    }
-  )
-)
-
-
 #'@title SurrogateLocalFile
 #'
 #' @name SurrogateLocalFile
@@ -64,7 +36,7 @@ SurrogateOpenML = R6Class("SurrogateOpenML",
 #'
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' of hyperparameters and a given performance.
-SurrogateFromRDS = R6Class("SurrogateLocalFile",
+SurrogateFromRDS = R6Class("SurrogateFromRDS",
   inherit = Surrogate,
   public = list(
     data_source = NULL,
@@ -115,6 +87,33 @@ SurrogateLocalARFF = R6Class("SurrogateLocalARFF",
       colnames(d)[colnames(d) == self$measure_name] = "performance"
       d$performance = self$scale_fun(d$performance)
       return(d)
+    }
+  )
+)
+
+#'@title SurrogateOpenML
+#'
+#' @name SurrogateOpenML
+#' @format [R6Class] object
+#' @description
+#'
+#' Inherits from [Surrogate].
+#'
+#' Allows for the construction of surrogates from a given meta-data dataset
+#' obtained from OpenML.
+SurrogateOpenML = R6Class("SurrogateOpenML",
+  inherit = Surrogate,
+  public = list(
+    oml_bot_tag = NULL,
+    initialize = function(oml_bot_tag, ...) {
+      stop("Not implemented")
+      super$initialize(...)
+      self$oml_bot_tag = assert_string(oml_bot_tag)
+    }
+  ),
+  private = list(
+    get_data_from_source = function() {
+      # Some OpenML Magic needs to happen here
     }
   )
 )
