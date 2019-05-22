@@ -149,22 +149,20 @@ Surrogate = R6Class("Surrogate",
       x = x[!is.na(x)]
       if (is.null(self$scale_fun_pars)) {
         # FIXME: Implement different options for this or expose BBmisc::normalize args
-        self$scaling = "normalize"
         self$scale_fun_pars = c(min = min(x), max = max(x))
         x = BBmisc::normalize(x, "range")
       } else {
         # In case we want to set the normalization from outside
-        self$scaling = "normalize_fixed_range"
         x = BBmisc::normalize(x, "range", range = c(self$scale_fun_pars$min, self$scale_fun_pars$max))
       }
-
-      self$rescale_fun = function(x) {
-        if (min(x) == max(x)) {
-          self$scale_fun_pars$min
-        } else {
-          (x * (self$scale_fun_pars$max - self$scale_fun_pars$min)) + self$scale_fun_pars$min
-        }
+    },
+    rescale_fun = function(x) {
+      if (min(x) == max(x)) {
+        x = self$scale_fun_pars$min
+      } else {
+        x = x * (self$scale_fun_pars$max - self$scale_fun_pars$min) + self$scale_fun_pars$min
       }
+      return(x)
     },
     fail_path = function(handle_prefix) {
       paste(handle_prefix, "surrogates", self$baselearner_name,
