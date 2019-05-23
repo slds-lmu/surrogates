@@ -20,6 +20,13 @@ Depends:
     checkmate
 Suggests:
     testthat,
-    OpenML
+    OpenML,
+    ranger,
+    rmarkdown
 Imports:
+    dplyr,
+    stringi,
+    tidyr,
     ParamHelpers
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
