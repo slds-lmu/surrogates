@@ -1,13 +1,11 @@
-#'@title SurrogateLocalFile
+#' @title SurrogateLocalFile
+#' @usage NULL
 #'
-#' @name SurrogateLocalFile
-#' @format [R6Class] object
+#' @format [R6::R6Class] object inheriting from [Surrogate].
 #' @description
-#'
-#' Inherits from [Surrogate].
-#'
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' of hyperparameters and a given performance.
+#'
 SurrogateLocalFile = R6Class("SurrogateLocalFile",
   inherit = Surrogate,
   public = list(
@@ -26,16 +24,14 @@ SurrogateLocalFile = R6Class("SurrogateLocalFile",
   )
 )
 
-#'@title SurrogateLocalFile
+#' @title SurrogateFromRDS
+#' @usage NULL
 #'
-#' @name SurrogateLocalFile
-#' @format [R6Class] object
+#' @format [R6::R6Class] object inheriting from [Surrogate].
 #' @description
-#'
-#' Inherits from [Surrogate].
-#'
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' of hyperparameters and a given performance.
+#'
 SurrogateFromRDS = R6Class("SurrogateFromRDS",
   inherit = Surrogate,
   public = list(
@@ -61,17 +57,15 @@ SurrogateFromRDS = R6Class("SurrogateFromRDS",
   )
 )
 
-#'@title SurrogateLocalARFF
+#' @title SurrogateFromARFF
+#' @usage NULL
 #'
-#' @name SurrogateLocalARFF
-#' @format [R6Class] object
+#' @format [R6::R6Class] object inheriting from [Surrogate].
 #' @description
-#'
-#' Inherits from [Surrogate].
-#'
-#' Allows for the construction of surrogates from a given meta-data dataset (ARFF)
+#' Allows for the construction of surrogates from a given meta-data dataset
 #' of hyperparameters and a given performance.
-SurrogateLocalARFF = R6Class("SurrogateLocalARFF",
+#'
+SurrogateFromARFF = R6Class("SurrogateFromARFF",
   inherit = Surrogate,
   public = list(
     data_source = NULL,
@@ -91,16 +85,14 @@ SurrogateLocalARFF = R6Class("SurrogateLocalARFF",
   )
 )
 
-#'@title SurrogateOpenML
+#' @title SurrogateOpenML
+#' @usage NULL
 #'
-#' @name SurrogateOpenML
-#' @format [R6Class] object
+#' @format [R6::R6Class] object inheriting from [Surrogate].
 #' @description
-#'
-#' Inherits from [Surrogate].
-#'
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' obtained from OpenML.
+#'
 SurrogateOpenML = R6Class("SurrogateOpenML",
   inherit = Surrogate,
   public = list(
