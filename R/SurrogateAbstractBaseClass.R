@@ -1,38 +1,108 @@
-#'@title Surrogate
+#' @title Surrogate
+#' @usage NULL
 #'
-#' @name Surrogate
-#' @format [R6Class] object
+#' @format [R6::R6Class] object.
+#'
 #' @description
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' of hyperparameters and a given performance.
 #'
-#' @section Usage:
-#'
+#' @section Construction:
 #' ```
-#' # Construction
 #' f = Surrogate$new()
 #' ```
 #'
-#' @section Arguments:
-#' * `oml_task_id` ([R6 class] or `type`):
-#'   OpenML Task Id
-#' * `baselearner_name` (`integer()`):
-#'   Description of argument1
-#' * `measure_name` (`character(1)`):
-#'   Identifier for the instance.
-#’
-#' @section Details:
-#' * `id`: A short descriptive identifier.
-#' * `member`: Description of member.
-#' * `method1()` ([data.table::data.table()]): Description of method1. The returned data table has two columns: ...
-#' * `method2()` (`logical(1)`): Description of method2. Return `TRUE` if some condition holds.
+#' @section Fields:
+#' * `fail_handle` ::
+#'
+#' * `use_cache` ::
+#'
+#' * `oml_task_id` :: `integer()`\cr
+#' OpenML Task id
+#'
+#' * `task_info` ::
+#'
+#' * `measure_name` :: `character(1)`\cr
+#'
+#' * `baselearner_name` :: `integer()`\cr
+#'
+#' * `surrogate_learner` ::
+#'
+#' * `param_names` ::
+#'
+#' * `param_set` ::
+#'
+#' * `rtask` ::
+#'
+#' * `model` ::
+#'
+#' * `resample` ::
+#'
+#' * `scaling` ::
+#'
+#' * `handle_prefix` ::
+#'
+#' * `scale_fun_pairs` ::
+#'
+#'
+#' @section Methods:
+#' TODO: define missing return types
+#' * `print()`\cr
+#' `()` -> `NULL`\cr
+#' Description of the method
+#'
+#' * `predict(newdata, rescale = FALSE)`\cr
+#' (`data.frame()`, `logical(1)`) -> `Return Type`\cr
+#' Description of the method
+#'
+#' * `file_rtask_to_disk()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `file_model_to_disk()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `file_resample_to_disk()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `acquire_object()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `acquire_rtask()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `acquire_model()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `acquire_resample()`\cr
+#' `()` -> \cr
+#' Description of the method
+#'
+#' * `scale_fun(x)`\cr
+#' `` -> \cr
+#' Description of the method
+#'
+#' * `rescale_fun(x)`\cr
+#' `` -> \cr
+#' Description of the method
+#'
+#' * `fail_path(handle_prefix)`\cr
+#' `` -> \cr
+#' Description of the method
+#'
+#' * `save(keep.model = FALSE, keep.task = FALSE)`\cr
+#' (`logical(1)`, `logical()`) -> \cr
+#' Description of the method
 #'
 #' @family Surrogate
 #'
 #' @examples
-#' f = ClassFoo$new("hello", 123)
-#' f$method1(10)
-
+#' f = Surrogate$new()
 Surrogate = R6Class("Surrogate",
   public = list(
     fail_handle = NULL,

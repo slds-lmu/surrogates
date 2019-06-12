@@ -32,7 +32,7 @@ source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLea
 surrogate.mlr.lrn = makeLearner("regr.fixcubist", committees = 20, extrapolation = 20)
 
 s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet",
-  data_source = "~/Downloads/OpenMLRandomBotResultsFinal_mlr.classif.glmnet.csv",
+  data_source = "inst/extdata/glmnet_sample.csv",
   measure_name = "auc", param_names = "lambda", surrogate_learner = "regr.ranger")
 
 fail::fail(s$fail_path())

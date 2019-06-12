@@ -1,1 +1,6 @@
 fail_data*
+.Rbuildignore
+.Rhistory
+.Rproj.user/
+man/
+surrogates.Rproj
