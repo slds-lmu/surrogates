@@ -101,7 +101,7 @@
 #' Description of the method
 #'
 #' @family Surrogate
-#'
+#' @export
 #' @examples
 #'   surr = Surrogate$new(oml_task_id = 31, base_learner = "regr.glmnet", eval_measure = "auc",
 #'                        param_names = "lambda", surrogate_learner = "regr.ranger")
