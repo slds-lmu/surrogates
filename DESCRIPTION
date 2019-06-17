@@ -27,6 +27,7 @@ Imports:
     dplyr,
     stringi,
     tidyr,
-    ParamHelpers
+    ParamHelpers,
+    glmnet
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
