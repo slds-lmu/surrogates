@@ -1,3 +1,10 @@
+^.git/
+^attic/
+^surrogates/
+
 ^data-raw$
 ^\.Rproj\.user$
 ^.*\.Rproj$
+^.travis.yml
+
+^README.md$
