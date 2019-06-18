@@ -1,7 +1,7 @@
 #' @title Surrogate
 #' @usage NULL
 #'
-#' @format [R6:R6Class] object.
+#' @format [R6::R6Class] object.
 #'
 #' @description
 #' Allows the construction of surrogates from a given meta-data dataset
