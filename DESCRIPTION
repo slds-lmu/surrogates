@@ -31,3 +31,10 @@ Imports:
     glmnet
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
+Collate: 
+    'load_functions.R'
+    'Surrogate.R'
+    'SurrogateCollection.R'
+    'get_results_openml.R'
+    'imports.R'
+    'par_sets.R'

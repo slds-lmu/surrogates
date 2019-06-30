@@ -1,28 +1,44 @@
 #' @title Reading data
 #'
 #' @description
-#' Functions to load data from different sources
-
-#' @export
+#' Loading data from csv
+#'
 #' @param filepath :: `character()`\cr
+#' @export
 load_from_csv = function(filepath) {
   data = as.data.frame(fread(filepath))
   return(data)
 }
 
-#' @export
+#' @title Reading data
+#'
+#' @description
+#' Loading data from RDS
+#'
 #' @param filepath :: `character()`\cr
-load_rds = function(filepath) {
+#' @export
+load_from_rds = function(filepath) {
   data = as.data.frame(readRDS(filepath))
   return(data)
 }
 
-#' @export
+#' @title Reading data
+#'
+#' @description
+#' Loading data from ARFF
+#'
 #' @param filepath :: `character()`\cr
-load_arff = function(filepath) {
-  data = as.data.frame(farff::readARFF(filepath))
+#' @export
+load_from_arff = function(filepath) {
+  data = as.data.frame(readARFF(filepath))
   return(data)
 }
 
 # TODO
-load_oml = function() {}
+#' @title Reading data
+#'
+#' @description
+#' Loading data from OpenML
+#'
+#' @export
+load_from_oml = function() {}
