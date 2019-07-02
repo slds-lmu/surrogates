@@ -1,5 +1,40 @@
 language: r
 sudo : false
-cache: packages
+
 r:
   - release
+
+os:
+  - linux
+
+dist: trusty
+
+r_packages:
+  - devtools
+  - roxygen2
+  - lintr
+
+r_github_packages:
+  - mlr-org/mlr
+  - berndbischl/BBmisc
+  - berndbischl/ParamHelpers
+
+warnings_are_errors: false
+
+cache:
+  packages: true
+  directories:
+    - $HOME/.surrogates/cache
+
+before_script:
+  - mkdir -p "$HOME/.surrogates/cache" && find "$HOME/.surrogates/cache"
+
+before_script:
+  - git lfs pull
+
+notifications:
+  email:
+    recipients:
+        - bagrat.akopyan@gmail.com
+    on_success: never
+    on_failure: never

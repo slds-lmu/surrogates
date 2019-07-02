@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/compstat-lmu/surrogates.svg?branch=master)](https://travis-ci.com/compstat-lmu/surrogates)
+
 # Surrogates for Machine Learning Algorithms
 
 The purpose of this model is to create a single **API** for different surrogates across algorithms, datasets and scalings.

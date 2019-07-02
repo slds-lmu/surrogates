@@ -13,11 +13,7 @@ Encoding: UTF-8
 LazyData: true
 Depends:
     R6,
-    fail,
-    BBmisc,
-    mlr,
-    data.table,
-    checkmate
+    mlr
 Suggests:
     testthat,
     OpenML,
@@ -26,7 +22,19 @@ Suggests:
 Imports:
     dplyr,
     stringi,
+    fail,
+    BBmisc,
     tidyr,
-    ParamHelpers
+    checkmate,
+    data.table,
+    ParamHelpers,
+    glmnet
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
+Collate: 
+    'load_functions.R'
+    'Surrogate.R'
+    'SurrogateCollection.R'
+    'get_results_openml.R'
+    'imports.R'
+    'par_sets.R'
