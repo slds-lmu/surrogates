@@ -1,3 +1,8 @@
+#' Get the param set for a given learner.
+#'
+#' Paramsets define the space in which we want to search for defaults.
+#' @param lrn.cl [`character`] learner.id.
+#' @export
 get_param_set = function(lrn.cl) {
 
   if (stringi::stri_sub(lrn.cl, 1, 8) != "classif.")
@@ -5,29 +10,29 @@ get_param_set = function(lrn.cl) {
 
   if (!checkmate::check_choice(lrn.cl, c("classif.glmnet", "classif.rpart",
     "classif.kknn", "classif.ranger", "classif.xgboost", "classif.svm")))
-    stop(sprintf("No parameter set for %s available, please supply a param set!", lrn))
+    stop(sprintf("No parameter set for %s available, please supply a param set!", lrn.cl))
 
   switch(lrn.cl,
-  "classif.glmnet" = makeParamSet(
+    "classif.glmnet" = makeParamSet(
       makeNumericParam("alpha", lower = 0, upper = 1, default = 1),
-      makeNumericVectorParam("lambda", len = 1L, lower = -10, upper = 10, default = 0 ,trafo = function(x) 2^x)),
+      makeNumericVectorParam("lambda", len = 1L, lower = -10, upper = 10, default = 0, trafo = function(x) 2^x)),
 
-  "classif.rpart" = makeParamSet(
+    "classif.rpart" = makeParamSet(
       makeNumericParam("cp", lower = 0, upper = 1, default = 0.01),
       makeIntegerParam("maxdepth", lower = 1, upper = 30, default = 30),
       makeIntegerParam("minbucket", lower = 1, upper = 60, default = 1),
       makeIntegerParam("minsplit", lower = 1, upper = 60, default = 20)),
 
-  "classif.kknn" = makeParamSet(
+    "classif.kknn" = makeParamSet(
       makeIntegerParam("k", lower = 1, upper = 30)),
 
-  "classif.svm" = makeParamSet(
+    "classif.svm" = makeParamSet(
       makeDiscreteParam("kernel", values = c("linear", "polynomial", "radial")),
       makeNumericParam("cost", lower = -10, upper = 10, trafo = function(x) 2^x),
       makeNumericParam("gamma", lower = -10, upper = 10, trafo = function(x) 2^x, requires = quote(kernel == "radial")),
       makeIntegerParam("degree", lower = 2, upper = 5, requires = quote(kernel == "polynomial"))),
 
-  "classif.ranger" = makeParamSet(
+    "classif.ranger" = makeParamSet(
       makeIntegerParam("num.trees", lower = 1, upper = 2000),
       makeLogicalParam("replace"),
       makeNumericParam("sample.fraction", lower = 0.1, upper = 1),
@@ -35,7 +40,7 @@ get_param_set = function(lrn.cl) {
       makeLogicalParam(id = "respect.unordered.factors"),
       makeNumericParam("min.node.size", lower = 0, upper = 1)),
 
-  "classif.xgboost" = makeParamSet(
+    "classif.xgboost" = makeParamSet(
       makeIntegerParam("nrounds", lower = 1, upper = 5000),
       makeDiscreteParam("booster", values = c("gbtree", "gblinear")),
       makeNumericParam("eta", lower = -10, upper = 0, trafo = function(x) 2^x),

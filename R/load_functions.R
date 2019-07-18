@@ -30,7 +30,7 @@ load_from_rds = function(filepath) {
 #' @param filepath :: `character()`\cr
 #' @export
 load_from_arff = function(filepath) {
-  data = as.data.frame(readARFF(filepath))
+  data = as.data.frame(farff::readARFF(filepath))
   return(data)
 }
 
