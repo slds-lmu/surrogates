@@ -1,2 +1,8 @@
-#' @import BBmisc R6 checkmate data.table fail mlr
+#' @import BBmisc
+#' @import R6
+#' @import checkmate
+#' @import data.table
+#' @import fail
+#' @import mlr
+#' @import ParamHelpers
 NULL
