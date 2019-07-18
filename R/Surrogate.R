@@ -140,7 +140,6 @@ Surrogate = R6Class("Surrogate",
 
     save_path = ".",
     data_source = NULL,
-    load_fun = NULL,
     data = NULL,
 
     scale_fun_pars = NULL,
@@ -225,6 +224,7 @@ Surrogate = R6Class("Surrogate",
       self$acquire_rtask()
       catf("<Obtaining Model>")
       self$model = train(self$surrogate_learner, self$rtask)
+      catf("<Writing model to disk>")
       if (self$use_cache) self$save_path$put(keys = self$key_model, self$model)
     },
 
@@ -232,6 +232,7 @@ Surrogate = R6Class("Surrogate",
       self$acquire_rtask()
       catf("<Obtaining Resampling>")
       self$resample = resample(self$base_learner, self$rtask, cv, measures)
+      catf("<Writing resample to disk>")
       if (self$use_cache) self$save_path$put(keys = self$key_resample, self$resample)
     },
 
@@ -266,7 +267,10 @@ Surrogate = R6Class("Surrogate",
       if (sum(which.logical > 0))
         d = do.call("cbind", list(d[, !which.logical], lapply(d[, which.logical],
           function(x) as.factor(as.character(x)))))
+      #TODO: add to active bindings to overwrite the value
       d$performance = 0.0
+
+      return(d)
     },
 
     save = function(keep.model = FALSE, keep.task = FALSE) {
