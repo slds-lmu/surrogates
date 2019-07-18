@@ -8,7 +8,7 @@ Authors@R:
            email = "first.last@example.com")
 Description: Allows for the construction of surrogates from a given meta-data dataset of
              hyperparameters and a given performance.
-License: What license it uses
+License: LGPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
@@ -18,7 +18,8 @@ Suggests:
     testthat,
     OpenML,
     ranger,
-    rmarkdown
+    rmarkdown,
+    farff
 Imports:
     dplyr,
     stringi,
@@ -35,6 +36,5 @@ Collate:
     'load_functions.R'
     'Surrogate.R'
     'SurrogateCollection.R'
-    'get_results_openml.R'
     'imports.R'
     'par_sets.R'
