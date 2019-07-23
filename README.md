@@ -19,18 +19,16 @@ What we want to achieve:
 ```r
 # Train surrogate from a local file.
 file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
-
-s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet", data_source = file,
-  measure_name = "auc", param_names = "lambda", surrogate_learner = "regr.ranger")
+s = Surrogate$new(oml_task_id = 9952L, base_learner = "glmnet", data_source = file,
+  param_set = get_param_set("classif.glmnet"), eval_measure = "auc",
+  surrogate_learner = "regr.ranger", load_fun = load_from_csv)
 s$file_rtask_to_disk()
 s$file_model_to_disk()
-s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1)))
+prd = s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1), "alpha" = 1:101))
 ```
 ## SurrogateCollection
 
 ```r
-# Use cubist as a learner.
-source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
 surrogate.mlr.lrn = makeLearner("regr.fixcubist", committees = 20, extrapolation = 20)
 
 s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet",
@@ -68,5 +66,10 @@ SCALINGS = c("normalize", "scale")
 
 ```
 
+## Cubist:
+```r
+# Use cubist as a learner.
+source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
+```
 
 

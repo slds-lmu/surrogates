@@ -22,14 +22,12 @@
 #' * `oml_task_id` :: `integer(1)`\cr
 #' OpenML Task id
 #'
-#' * `task_info` ::
-#'
 #' * `eval_measure` :: `character()`\cr
 #' c('auc', 'acc', 'brier')
 #'
-#' * `base_learner` :: `character(1)`\cr
+#' * `base_learner` :: `character(1)` \cr Does not need to be an mlr learner.
 #'
-#' * `surrogate_learner` :: `character(1)`\cr
+#' * `surrogate_learner` :: `character(1)`\cr An mlr learner.
 #'
 #' * `param_names` :: `character()`\cr
 #'
@@ -41,7 +39,7 @@
 #'
 #' * `resample` ::
 #'
-#' * `scaling` ::
+#' * `scaler` ::
 #'
 #' * `save_path` :: `character(1)`\cr
 #' Root directory to save the results
@@ -53,9 +51,7 @@
 #' Function to load the data
 #'
 #' * `data` :: `data.frame()`\cr
-#' Loaded data stored in a dataframe
-#'
-#' * `scale_fun_pairs` ::
+#' Loaded data stored in a data.frame
 #'
 #' @section Methods:
 #' TODO: define missing return types
@@ -95,14 +91,6 @@
 #' `()` -> \cr
 #' Description of the method
 #'
-#' * `scale_fun(x)`\cr
-#' `` -> \cr
-#' Description of the method
-#'
-#' * `rescale_fun(x)`\cr
-#' `` -> \cr
-#' Description of the method
-#'
 #' * `fail_path(handle_prefix)`\cr
 #' `` -> \cr
 #' Description of the method
@@ -120,70 +108,61 @@
 #'                        eval_measure = "auc", param_set = ps,
 #'                        param_names = "lambda", surrogate_learner = "regr.ranger",
 #'                        data_source = ds, load_fun = load_from_csv)
-
 Surrogate = R6Class("Surrogate",
   public = list(
-    use_cache = TRUE,
 
     oml_task_id = NULL,
     eval_measure = NULL,
     base_learner = NULL,
     surrogate_learner = NULL,
     param_set = NULL,
-    param_names = NULL,
+    use_cache = TRUE,
 
     rtask = NULL,
-    task_info = NULL,
     model = NULL,
     resample = NULL,
-    scaling = 'normalize',
+    scaler = Scaler$new(),
+    load_fun = NULL,
 
     save_path = ".",
     data_source = NULL,
     data = NULL,
 
-    scale_fun_pars = NULL,
+    param_names = NULL,
+    cst_performance_ = 0,
 
     initialize = function(oml_task_id, base_learner, eval_measure, surrogate_learner,
-          param_set, param_names, use_cache = TRUE, save_path, data_source, load_fun) {
-      self$oml_task_id = assert_int(oml_task_id)
+          param_set, use_cache = TRUE, save_path, data_source, load_fun, scaler) {
 
-      self$base_learner = mlr::checkLearner(base_learner)
-      self$eval_measure = if (assert_true(eval_measure %in% mlr::listMeasures())) eval_measure
+      # Info used for subsetting the data:
+      self$oml_task_id = assert_int(oml_task_id)
+      self$base_learner = assert_string(base_learner)
+      self$eval_measure = assert_string(eval_measure)
+
+      if (!missing(scaler)) self$scaler = scaler
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
 
       self$use_cache = checkmate::assert_flag(use_cache)
-
       if (!missing(save_path))
         self$save_path = save_path
-      self$save_path = fail::fail(self$fail_path())
-
+      self$save_path = fail::fail(self$fail_path)
       self$data_source = assert_string(data_source, null.ok = TRUE)
-      if (file.exists(self$data_source))
-        self$data = load_fun(self$data_source)
-      else
-        stop("Input file doesn't exist!")
+      self$load_fun = assert_function(load_fun)
 
-      if (missing(param_set))
-        stop("Please provide a valid param_set of class ParamSet!")
+      if (missing(param_set)) stop("Please provide a valid param_set of class ParamSet!")
       self$param_set = assert_class(param_set, "ParamSet")
-      if (!missing(param_set) && is.null(param_names)) {
-        self$param_names = intersect(getParamIds(param_set), colnames(self$data))
-      }
-
-      if (!missing(param_set) && !missing(param_names)) {
-        self$param_names = intersect(intersect(getParamIds(param_set), param_names), colnames(self$data))
-      }
-
-      self$data = self$data[self$data$task_id == self$oml_task_id, c(self$eval_measure, self$param_names)]
-      colnames(self$data) = c("performance", self$param_names)
     },
 
-    # TODO:
-    predict = function(newdata, rescale = FALSE) {},
-    train = function() {},
-    scale = function(x) {},
-    rescale = function(x) {},
+    train = function() {
+      self$acquire_model()
+    },
+
+    predict = function(newdata, rescale = FALSE) {
+      prd = predict(self$model, newdata = newdata)$data$response
+      if (rescale)
+        prd = self$scaler$rescale(prd)
+      return(prd)
+    },
 
     print = function(...) {
       catf("Surrogate for OML task <%i> for measure <%s> for BL <%s>",
@@ -191,18 +170,10 @@ Surrogate = R6Class("Surrogate",
       catf("RTask: %s", ifelse(is.null(self$rtask), "no", "yes"))
       catf("Model: %s", ifelse(is.null(self$model), "no", "yes"))
       catf("Performance: %s", ifelse(is.null(self$resample), "N/A", self$resample$aggr))
-
-      # As with any R6 method called for its side effects, $print() should return invisible(self)
       invisible(self)
     },
 
-    fail_path = function() {
-      paste(self$save_path, "surrogates", self$base_learner$short.name,
-        paste0(self$surrogate_learner$short.name, "_surrogate"),
-        self$eval_measure, self$scaling, sep = "/"
-      )
-    },
-
+    # Object Getters ---------------------------------------------------------------------
     acquire_rtask = function() self$acquire_object("rtask"),
     acquire_model = function() self$acquire_object("model"),
     acquire_resample = function() self$acquire_object("resample"),
@@ -237,12 +208,10 @@ Surrogate = R6Class("Surrogate",
     },
 
     file_rtask_to_disk = function() {
-      # Take all hyper params if none specified
-      if (is.null(self$param_names))
-        self$param_names = names(self$param_set)
-
-      # Check if param_names are contained in data
-      checkmate::assert_subset(self$param_names, colnames(self$data))
+      # Load the data
+      if (file.exists(self$data_source))
+        self$data = self$load_fun(self)
+      else stop("Input file doesn't exist!")
 
       # In case no data exists, we always sample 0 performance
       if (nrow(self$data) == 0L) {
@@ -251,11 +220,13 @@ Surrogate = R6Class("Surrogate",
 
       # attributes(d$target) = NULL # https://github.com/imbs-hl/ranger/issues/354
       catf("<Obtaining Task>")
-      tsk = makeRegrTask(id = as.character(self$oml_task_id), data = self$data, target = "performance")
+      tsk = makeRegrTask(id = as.character(self$oml_task_id), data = as.data.frame(self$data), target = "performance")
       self$rtask = removeConstantFeatures(tsk)
 
-      catf("<Writing task to disk>")
-      if (self$use_cache) self$save_path$put(keys = self$key_rtask, self$rtask)
+      if (self$use_cache) {
+        catf("<Writing task to disk>")
+        self$save_path$put(keys = self$key_rtask, self$rtask)
+      }
     },
 
     fit_constant_model = function() {
@@ -267,9 +238,7 @@ Surrogate = R6Class("Surrogate",
       if (sum(which.logical > 0))
         d = do.call("cbind", list(d[, !which.logical], lapply(d[, which.logical],
           function(x) as.factor(as.character(x)))))
-      #TODO: add to active bindings to overwrite the value
-      d$performance = 0.0
-
+      d$performance = self$cst_performance_
       return(d)
     },
 
@@ -277,12 +246,17 @@ Surrogate = R6Class("Surrogate",
       if (!keep.model) self$model = NULL
       if (!keep.task) self$rtask = NULL
       self$save_path$put(keys = self$key_class, self)
+    },
+
+    prepare_data = function() {
+      browser()
+      self$scaler$scale(self$data)
     }
   ),
 
   active = list(
     key_base = function() sprintf("%i_%s_%s",
-      self$oml_task_id, self$eval_measure, self$base_learner$short.name),
+      self$oml_task_id, self$eval_measure, self$base_learner),
     key_model = function() paste0("surr_model_", self$key_base),
     key_rtask = function() paste0("surr_rtask_", self$key_base),
     key_resample = function() paste0("surr_resample_", self$key_base),
@@ -290,7 +264,15 @@ Surrogate = R6Class("Surrogate",
 
     in_cache_rtask = function() self$key_rtask %in% self$save_path$ls(),
     in_cache_model = function() self$key_model %in% self$save_path$ls(),
-    in_cache_resample = function() self$key_resample %in% self$save_path$ls()
+    in_cache_resample = function() self$key_resample %in% self$save_path$ls(),
+
+    fail_path = function() {
+      paste(self$save_path, "surrogates", self$base_learner,
+        paste0(self$surrogate_learner$short.name, "_surrogate"),
+        self$eval_measure, self$scaler_name, sep = "/"
+      )
+    },
+    cst_performance = function(val) {if(missing(val)) self$cst_performance_ = val else self$cst_performance_}
   ),
 
   private = list()

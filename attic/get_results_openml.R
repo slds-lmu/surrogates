@@ -89,3 +89,25 @@ get_params = function(base_learner, task.id, paras_names) {
 # runz = get_runs(base_learner, 31)
 # parz = get_params(base_learner, c("alpha", "lambda"))
 # data = merge(data, runs[, c("run.id", "setup.id")], key = "setup.id")
+
+
+df = as.data.frame(matrix(rnorm(10^6), nrow = 5*10^4, ncol = 20))
+df$y = rnorm(10^4)
+library(mlr)
+tsk = makeRegrTask(data = df, target = "y")
+
+lrn = makeLearner("regr.RcppHNSW", M = 64)
+mod = train(lrn, tsk)
+prd = predict(mod, tsk)
+performance(prd, list(rmse, timetrain, timepredict), model = mod)
+
+lrn = makeLearner("regr.RcppHNSW", M = 64, distance = "cosine")
+mod = train(lrn, tsk)
+prd = predict(mod, tsk)
+performance(prd, list(rmse, timetrain, timepredict), model = mod)
+
+
+lrn = makeLearner("regr.cubist", committees = 20L)
+mod = train(lrn, tsk)
+prd = predict(mod, tsk)
+performance(prd, list(rmse, timetrain, timepredict), model = mod)
