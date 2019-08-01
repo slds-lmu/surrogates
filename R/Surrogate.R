@@ -151,13 +151,16 @@ Surrogate = R6Class("Surrogate",
 
       if (missing(param_set)) stop("Please provide a valid param_set of class ParamSet!")
       self$param_set = assert_class(param_set, "ParamSet")
+      invisible(self)
     },
 
     train = function() {
       self$acquire_model()
+      invisible(self)
     },
 
     predict = function(newdata, rescale = FALSE) {
+      if(is.null(self$model)) self$train()
       prd = predict(self$model, newdata = newdata)$data$response
       if (rescale)
         prd = self$scaler$rescale(prd)
@@ -246,11 +249,6 @@ Surrogate = R6Class("Surrogate",
       if (!keep.model) self$model = NULL
       if (!keep.task) self$rtask = NULL
       self$save_path$put(keys = self$key_class, self)
-    },
-
-    prepare_data = function() {
-      browser()
-      self$scaler$scale(self$data)
     }
   ),
 
@@ -272,7 +270,9 @@ Surrogate = R6Class("Surrogate",
         self$eval_measure, self$scaler_name, sep = "/"
       )
     },
-    cst_performance = function(val) {if(missing(val)) self$cst_performance_ = val else self$cst_performance_}
+    cst_performance = function(val) {
+      if(missing(val)) self$cst_performance_ = val else self$cst_performance_
+    }
   ),
 
   private = list()
