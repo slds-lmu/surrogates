@@ -134,7 +134,7 @@ Surrogate = R6Class("Surrogate",
     initialize = function(oml_task_id, base_learner, eval_measure, surrogate_learner,
           param_set, use_cache = TRUE, save_path, data_source, load_fun, scaler) {
 
-      # Info used for subsetting the data:
+      # Info used for sub-setting the data:
       self$oml_task_id = assert_int(oml_task_id)
       self$base_learner = assert_string(base_learner)
       self$eval_measure = assert_string(eval_measure)
@@ -267,7 +267,7 @@ Surrogate = R6Class("Surrogate",
     fail_path = function() {
       paste(self$save_path, "surrogates", self$base_learner,
         paste0(self$surrogate_learner$short.name, "_surrogate"),
-        self$eval_measure, self$scaler_name, sep = "/"
+        self$eval_measure, self$scaler$scaler_name, sep = "/"
       )
     },
     cst_performance = function(val) {

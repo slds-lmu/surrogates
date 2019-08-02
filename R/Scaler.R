@@ -34,12 +34,13 @@ Scaler = R6Class("Scaler",
 #' Scales data according to a given method
 #' dividing by a function of the time it took to train the model.
 ScalerTimeCrit = R6Class("ScalerTimeCrit",
+  inherit = Scaler,
   public = list(
     power = NULL,
     base = NULL,
     method = NULL,
-    state = NULL,
-    initialize = function(method = "range", base, power) {
+    values = NULL,
+    initialize = function(method = "range", base = 10, power = 0.1) {
       super$initialize(method)
       self$base = assert_number(base)
       self$power = assert_number(power)
