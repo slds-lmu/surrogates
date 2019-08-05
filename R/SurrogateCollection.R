@@ -55,7 +55,7 @@ SurrogateCollection = R6Class("SurrogateCollection",
       names(prds) = baselearners
 
       # Perhaps aggregate
-      if(!is.null(self$aggfun_)) prds = self$aggfun_(prds)
+      # if(!is.null(self$aggfun_)) prds = self$aggfun_(prds)
 
       return(prds)
     },
@@ -70,7 +70,7 @@ SurrogateCollection = R6Class("SurrogateCollection",
 
     # Predict on the held-out data.
     evaluate_holdout_task = function(newdata) {
-      self$predict(newdata, self$holdout_task_id, NULL, NULL)
+      self$predict(newdata, self$holdout_task_id, NULL)
     },
     set_holdout_task = function(oml_task_id) {
       assert_subset(oml_task_id, self$oml_task_ids)
@@ -87,12 +87,15 @@ SurrogateCollection = R6Class("SurrogateCollection",
     surrogates_active = function() self$surrogates[self$active],
     oml_task_ids_active = function() unique(vnapply(self$surrogates_active, function(x) x$oml_task_id)),
     baselearners = function() vcapply(self$surrogates, function(x) x$base_learner),
-    measures = function() vcapply(self$surrogates, function(x) x$measure_name),
+    measures = function() vcapply(self$surrogates, function(x) x$eval_measure),
     param_names = function() lapply(self$surrogates_active, function(x) x$param_names),
     surrogate_learner = function() vcapply(self$surrogates, function(x) {x$surrogate_learner$short.name}),
     aggfun = function(fun) {
       if(missing(val)) self$aggfun_
       else self$aggfun_ = assert_function(fun)
+    },
+    scalings = function() {
+      unique(sapply(self$surrogates, function(x) x$scaler$scaler_name))
     }
   )
 )
