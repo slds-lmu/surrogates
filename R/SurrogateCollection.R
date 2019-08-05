@@ -39,7 +39,8 @@ SurrogateCollection = R6Class("SurrogateCollection",
     },
 
     # Predict on a list of [newdata], named with [baselearners]
-    predict = function(newdata, oml_task_ids = NULL, baselearners = NULL) {
+    predict = function(newdata, oml_task_ids = NULL, baselearners = NULL, rescale = FALSE) {
+      assert_flag(rescale)
       assert_list(newdata, names = "named")
 
       if (is.null(baselearners)) {
@@ -50,7 +51,7 @@ SurrogateCollection = R6Class("SurrogateCollection",
       }
 
       prds = lapply(seq_along(baselearners), function(bl) {
-        self$predict_bl(newdata[[bl]], oml_task_ids, baselearners[bl])
+        self$predict_bl(newdata[[bl]], oml_task_ids, baselearners[bl], rescale)
       })
       names(prds) = baselearners
 
@@ -61,9 +62,9 @@ SurrogateCollection = R6Class("SurrogateCollection",
     },
 
     # Predict a single base learner
-    predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL) {
+    predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL, rescale) {
       use_surrogates = self$subset_surrogates(oml_task_ids, baselearner)
-      prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata))
+      prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata, rescale))
       prds = do.call("cbind", prds)
       return(prds)
     },
