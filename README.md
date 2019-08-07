@@ -19,30 +19,27 @@ What we want to achieve:
 ```r
 # Train surrogate from a local file.
 file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
-
-s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet", data_source = file,
-  measure_name = "auc", param_names = "lambda", surrogate_learner = "regr.ranger")
-s$file_rtask_to_disk()
-s$file_model_to_disk()
-s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1)))
+s = Surrogate$new(oml_task_id = 9952L, base_learner = "glmnet", data_source = file,
+  param_set = get_param_set("classif.glmnet"), eval_measure = "auc",
+  surrogate_learner = "regr.ranger", load_fun = load_from_csv)
+s$train()
+prd = s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1), "alpha" = 1:101))
 ```
 ## SurrogateCollection
 
 ```r
-# Use cubist as a learner.
-source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
-surrogate.mlr.lrn = makeLearner("regr.fixcubist", committees = 20, extrapolation = 20)
+file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
+surrs = lapply(c(3, 37, 43, 49), function(tid) {
+  s = Surrogate$new(oml_task_id = tid, base_learner = "glmnet", data_source = file,
+    param_set = get_param_set("classif.glmnet"), eval_measure = "auc",
+    surrogate_learner = "regr.ranger", load_fun = load_from_csv)
+})
 
-s = SurrogateLocalFile$new(oml_task_id = 31, baselearner_name = "glmnet",
-  data_source = "inst/extdata/glmnet_sample.csv",
-  measure_name = "auc", param_names = "lambda", surrogate_learner = "regr.ranger")
-
-fail::fail(s$fail_path())
-s$file_rtask_to_disk()
-s$file_model_to_disk()
-s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1)))
+sc = SurrogateCollection$new(surrs)
+sc$predict(list("glmnet" =
+  data.frame("lambda" = seq(from = 0, to = 10, by = 0.1), "alpha" = 1:101)
+))
 ```
-
 
 ## Config
 
@@ -61,12 +58,34 @@ OML_TASK_IDS = c(3L, 31L, 37L, 43L, 49L, 219L, 3485L, 3492L, 3493L, 3494L, 3889L
 BASE_LEARNERS = c("glmnet", "rpart", "kknn", "svm", "ranger", "xgboost")
 MEASURES = c("auc", "acc", "brier")
 
-
-
 SURROGATE_LEARNERS = c("regr.ranger", "regr.fixcubist")
-SCALINGS = c("normalize", "scale")
-
 ```
 
+## Benchmark:
 
+```r
+# Use cubist as a learner.
+source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
+file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
+learners = list(makeLearner("regr.ranger", num.trees = 20L), makeLearner("regr.fixcubist", committees = 20L), makeLearner("regr.RcppHNSW"))
 
+scs = lapply(learners, function(surr) {
+  surrs = lapply(c(3, 37, 43, 49), function(tid) {
+    s = Surrogate$new(oml_task_id = tid, base_learner = "glmnet", data_source = file,
+      param_set = get_param_set("classif.glmnet"), eval_measure = "auc",
+      surrogate_learner = surr, load_fun = load_from_csv)$train()
+  })
+  SurrogateCollection$new(surrs)
+})
+
+df = data.frame("lambda" = seq(from = 0, to = 10, by = 0.01), "alpha" = 1:1001)
+df = list("glmnet" = df)
+
+library(microbenchmark)
+microbenchmark(
+  "ranger" = scs[[1]]$predict(df),
+  "cubist" = scs[[2]]$predict(df),
+  "hnsw" = scs[[3]]$predict(df),
+  times = 2
+)
+```

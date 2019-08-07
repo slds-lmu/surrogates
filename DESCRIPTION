@@ -33,6 +33,8 @@ Imports:
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate: 
+    'RLearner_regr_RcppHNSW.R'
+    'Scaler.R'
     'load_functions.R'
     'Surrogate.R'
     'SurrogateCollection.R'

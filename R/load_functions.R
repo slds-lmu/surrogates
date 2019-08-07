@@ -5,8 +5,15 @@
 #'
 #' @param filepath :: `character()`\cr
 #' @export
-load_from_csv = function(filepath) {
-  data = as.data.frame(fread(filepath))
+load_from_csv = function(self) {
+  # Load and rename column
+  data = fread(self$data_source)
+  colnames(data)[colnames(data) == self$eval_measure] = "performance"
+  # Scale performance column
+  data$performance[data$task_id == self$oml_task_id] = self$scaler$scale(data, oml_task_id = self$oml_task_id)
+  # Subset columns, only relevant data
+  self$param_names = intersect(getParamIds(self$param_set), colnames(data))
+  data = data[data$task_id == self$oml_task_id, c("performance", self$param_names), with = FALSE]
   return(data)
 }
 

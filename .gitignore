@@ -4,3 +4,5 @@ fail_data*
 .Rproj.user/
 man/
 surrogates.Rproj
+surrogates/*
+tests/testthat/surrogates/*
