@@ -106,7 +106,8 @@
 #'   ds = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
 #'   surr = Surrogate$new(oml_task_id = 31, base_learner = "regr.glmnet",
 #'                        eval_measure = "auc", param_set = ps,
-#'                        param_names = "lambda", surrogate_learner = "regr.ranger",
+#'                        surrogate_learner = "regr.ranger",
+#'                        save_path = tempdir(),
 #'                        data_source = ds, load_fun = load_from_csv)
 Surrogate = R6Class("Surrogate",
   public = list(

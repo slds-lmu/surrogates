@@ -8,6 +8,7 @@
 #'
 #' Allows for the construction of surrogates from a given meta-data dataset
 #' obtained from OpenML.
+#' @export
 SurrogateCollection = R6Class("SurrogateCollection",
   public = list(
     surrogates = NULL,
@@ -36,10 +37,9 @@ SurrogateCollection = R6Class("SurrogateCollection",
         oml_task_ids = self$oml_task_ids[self$active]
       }
 
-      prds = lapply(seq_along(base_learners), function(bl) {
+      prds = setNames(lapply(seq_along(base_learners), function(bl) {
         private$predict_bl(newdata[[bl]], oml_task_ids, base_learners[bl], rescale)
-      })
-      names(prds) = base_learners
+      }), base_learners)
 
       return(prds)
     },

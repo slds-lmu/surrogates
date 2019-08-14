@@ -24,10 +24,10 @@ test_that("predict", {
   ps = get_param_set("glmnet")
   s1 = Surrogate$new(oml_task_id = 3, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   s2 = Surrogate$new(oml_task_id = 37, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   sc = SurrogateCollection$new(list(s1, s2))
   des = list("regr.glmnet" = generateDesign(10, ps))
   prds = sc$predict(des)
@@ -38,17 +38,15 @@ test_that("predict", {
   expect_true(all(grepl("3_", cns)|grepl("37_", cns)))
 })
 
-
-
 test_that("predict for different holdout tasks", {
   ds = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
   ps = get_param_set("glmnet")
   s1 = Surrogate$new(oml_task_id = 43, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   s2 = Surrogate$new(oml_task_id = 37, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   sc = SurrogateCollection$new(list(s1, s2))
   des = list("regr.glmnet" = generateDesign(10, ps))
   
@@ -100,10 +98,10 @@ test_that("eval holdout task", {
   ps = get_param_set("glmnet")
   s1 = Surrogate$new(oml_task_id = 43, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   s2 = Surrogate$new(oml_task_id = 37, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   sc = SurrogateCollection$new(list(s1, s2))
   des = list("regr.glmnet" = generateDesign(10, ps))
   
@@ -117,16 +115,15 @@ test_that("eval holdout task", {
   expect_true(grepl("43_", cns))
 })
 
-
 test_that("active bindings", {
   ds = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
   ps = get_param_set("glmnet")
   s1 = Surrogate$new(oml_task_id = 43, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   s2 = Surrogate$new(oml_task_id = 37, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   sc = SurrogateCollection$new(list(s1, s2))
   des = list("regr.glmnet" = generateDesign(10, ps))
   

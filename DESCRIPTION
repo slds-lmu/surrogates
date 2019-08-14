@@ -15,21 +15,24 @@ Depends:
     R6,
     mlr
 Suggests:
-    testthat,
-    OpenML,
-    ranger,
     rmarkdown,
-    farff
-Imports:
+    testthat,
+    lhs,
+    ranger,
+    glmnet,
+    OpenML,
+    farff,
+    data.table,
     dplyr,
+    tidyr
+Imports:
+    BBmisc,
+    ParamHelpers,
     stringi,
     fail,
-    BBmisc,
-    tidyr,
-    checkmate,
-    data.table,
-    ParamHelpers,
-    glmnet
+    checkmate
+
+    
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate: 

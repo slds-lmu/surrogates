@@ -1,8 +1,8 @@
-#' @import BBmisc
 #' @import R6
 #' @import checkmate
-#' @import data.table
-#' @import fail
+#' @import BBmisc
 #' @import mlr
 #' @import ParamHelpers
+#' @import fail
+#' @import stringi
 NULL
