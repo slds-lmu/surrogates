@@ -25,7 +25,8 @@ Scaler = R6Class("Scaler",
     rescale = function(x) {
       switch(self$method,
         "standardize" = x * self$values["sd"] + self$values["mean"],
-        "range" = BBmisc::normalize(x, "range", self$values)
+        "range" = BBmisc::normalize(x, "range", self$values),
+        "none" = x
       )
     }
   ),
