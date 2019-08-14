@@ -40,17 +40,15 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
     base = NULL,
     method = NULL,
     values = NULL,
-    initialize = function(method = "range", base = 10, power = 0.1) {
+    initialize = function(method = "range", base = exp(1), power = 1) {
       super$initialize(method)
       self$base = assert_number(base)
       self$power = assert_number(power)
     },
     scale = function(data, oml_task_id, runtime) {
       x = data[data$task_id == oml_task_id, ]$performance
-      time = data[data$task_id == oml_task_id, ][["runtime"]]
-      # Random Bot Data has negative timing in few cases. We add a constant ~3 seconds to
-      # fix this.
-      if (any(time < 0)) time = time + abs(min(time))
+      data = data[data$task_id == oml_task_id, .(runtime = (runtime + abs(min(runtime))), task_id, learner_id)]
+      time = data[, .(runtime = runtime / max(runtime)), by = .(task_id, learner_id)][["runtime"]]
       # Save transformation
       self$values = range(x)
       x = BBmisc::normalize(x, on.constant = "quiet")

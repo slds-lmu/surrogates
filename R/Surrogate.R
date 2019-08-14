@@ -202,10 +202,10 @@ Surrogate = R6Class("Surrogate",
       if (self$use_cache) self$save_path$put(keys = self$key_model, self$model)
     },
 
-    file_resample_to_disk = function(cv = cv3, measures = rmse) {
+    file_resample_to_disk = function(cv = cv3, measures = list(rmse, timepredict)) {
       self$acquire_rtask()
       catf("<Obtaining Resampling>")
-      self$resample = resample(self$base_learner, self$rtask, cv, measures)
+      self$resample = resample(self$surrogate_learner, self$rtask, cv, measures)
       catf("<Writing resample to disk>")
       if (self$use_cache) self$save_path$put(keys = self$key_resample, self$resample)
     },
