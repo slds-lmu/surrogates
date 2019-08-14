@@ -5,7 +5,7 @@ test_that("initialization", {
   ps = get_param_set("glmnet")
   surr = Surrogate$new(oml_task_id = 3, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   expect_r6(surr,"Surrogate")
 })
 
@@ -14,7 +14,7 @@ test_that("print_fun", {
   ps = get_param_set("glmnet")
   surr = Surrogate$new(oml_task_id = 3, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   expect_invisible(print(surr))
 })
 

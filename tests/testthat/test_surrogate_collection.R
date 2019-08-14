@@ -6,11 +6,11 @@ test_that("initialization", {
 
   s1 = Surrogate$new(oml_task_id = 3, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   expect_r6(s1, classes = "Surrogate")
   s2 = Surrogate$new(oml_task_id = 37, base_learner = "regr.glmnet", eval_measure = "auc",
     param_set = ps, surrogate_learner = "regr.ranger",
-    data_source = ds, load_fun = load_from_csv)
+    data_source = ds, load_fun = load_from_csv, save_path = tempdir())
   expect_r6(s2, classes = "Surrogate")
   sc = SurrogateCollection$new(list(s1, s2))
   expect_r6(sc, classes = "SurrogateCollection")
@@ -52,6 +52,7 @@ test_that("predict for different holdout tasks", {
   
   # One Task
   sc$set_holdout_task(43)
+  expect_true(sc$holdout_task_id == 43)
   expect_true(!sc$active[sc$oml_task_ids == 43])
   expect_true(sc$active[sc$oml_task_ids == 37])
   prds = sc$predict(des)
@@ -64,6 +65,7 @@ test_that("predict for different holdout tasks", {
 
   # Other Task
   sc$set_holdout_task(37)
+  expect_true(sc$holdout_task_id == 37)
   expect_true(sc$active[sc$oml_task_ids == 43])
   expect_true(!sc$active[sc$oml_task_ids == 37])
   prds_2 = sc$predict(des)
@@ -76,6 +78,7 @@ test_that("predict for different holdout tasks", {
 
   # No Task
   sc$set_holdout_task(NULL)
+  expect_true(is.null(sc$holdout_task_id))
   expect_true(sc$active[sc$oml_task_ids == 43])
   expect_true(sc$active[sc$oml_task_ids == 37])
   prds_3 = sc$predict(des)
@@ -89,8 +92,13 @@ test_that("predict for different holdout tasks", {
   expect_true(all(prds[[1]] == prds_3[[1]][, 2, drop = FALSE]))
   expect_true(all(prds_2[[1]] == prds_3[[1]][, 1, drop = FALSE]))
 
+  # Should error
   expect_error(sc$set_holdout_task(3))
   expect_error(sc$set_holdout_task("37"))
+
+  sc$set_holdout_task(c(37, 43))
+  expect_true(all(sc$holdout_task_id %in% c(37, 43)))
+  expect_warning(sc$predict(des))
 })
 
 test_that("eval holdout task", {

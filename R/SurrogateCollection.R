@@ -60,6 +60,7 @@ SurrogateCollection = R6Class("SurrogateCollection",
     # Predict a single base learner
     predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL, rescale) {
       use_surrogates = private$subset_surrogates(oml_task_ids, baselearner)
+      if (length(use_surrogates) == 0) warning("No surrogates to predict on!")
       prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata, rescale))
       prds = do.call("cbind", prds)
       return(prds)

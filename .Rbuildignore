@@ -1,7 +1,7 @@
 ^.git/
-^attic/
-^surrogates/
-^.*/surrogates/
+^attic
+^surrogates
+^.*/surrogates
 
 ^data-raw$
 ^\.Rproj\.user$
