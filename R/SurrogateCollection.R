@@ -22,9 +22,51 @@ SurrogateCollection = R6Class("SurrogateCollection",
       self$active = rep(TRUE, length(self$surrogates))
     },
 
+    # Predict on a list of [newdata], named with [base_learners]
+    predict = function(newdata, oml_task_ids = NULL, base_learners = NULL, rescale = FALSE) {
+      assert_flag(rescale)
+      assert_list(newdata, names = "named")
+      assert_integerish(oml_task_ids, null.ok = TRUE)
+      assert_character(base_learners, null.ok = TRUE)
+
+      if (is.null(base_learners)) {
+        base_learners = setNames(names(newdata), names(newdata))
+      }
+      if (is.null(oml_task_ids)) {
+        oml_task_ids = self$oml_task_ids[self$active]
+      }
+
+      prds = lapply(seq_along(base_learners), function(bl) {
+        private$predict_bl(newdata[[bl]], oml_task_ids, base_learners[bl], rescale)
+      })
+      names(prds) = base_learners
+
+      return(prds)
+    },
+
+    # Set a surrogate as hold out (so predict will not evaluate it)
+    set_holdout_task = function(oml_task_id) {
+      assert_subset(oml_task_id, self$oml_task_ids)
+      self$holdout_task_id = oml_task_id
+      self$active = !(self$oml_task_ids %in% oml_task_id)
+    },
+    # Predict on the held-out data.
+    evaluate_holdout_task = function(newdata) {
+      self$predict(newdata, self$holdout_task_id, NULL)
+    }
+  ),
+
+  private = list(
+    # Predict a single base learner
+    predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL, rescale) {
+      use_surrogates = private$subset_surrogates(oml_task_ids, baselearner)
+      prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata, rescale))
+      prds = do.call("cbind", prds)
+      return(prds)
+    },
     subset_surrogates = function(oml_task_ids, baselearner) {
       assert_subset(oml_task_ids, unique(self$oml_task_ids))
-      assert_subset(baselearner, unique(self$baselearners))
+      assert_subset(baselearner, unique(self$base_learners))
 
       # If null, active tasks else specific task
       if (is.null(oml_task_ids))
@@ -33,70 +75,24 @@ SurrogateCollection = R6Class("SurrogateCollection",
 
       # If no base learner is given, all else only specific bl
       if (is.null(baselearner)) use_bls  = seq_along(self$surrogates)
-      else use_bls = which(self$baselearners %in% baselearner)
-
+      else use_bls = which(self$base_learners %in% baselearner)
+      
+      # Return applicable surrogates
       Reduce(intersect, list(use_task, use_bls))
-    },
-
-    # Predict on a list of [newdata], named with [baselearners]
-    predict = function(newdata, oml_task_ids = NULL, baselearners = NULL, rescale = FALSE) {
-      assert_flag(rescale)
-      assert_list(newdata, names = "named")
-
-      if (is.null(baselearners)) {
-        baselearners = setNames(names(newdata), names(newdata))
-      }
-      if (is.null(oml_task_ids)) {
-        oml_task_ids = self$oml_task_ids_active
-      }
-
-      prds = lapply(seq_along(baselearners), function(bl) {
-        self$predict_bl(newdata[[bl]], oml_task_ids, baselearners[bl], rescale)
-      })
-      names(prds) = baselearners
-
-      # Perhaps aggregate
-      # if(!is.null(self$aggfun_)) prds = self$aggfun_(prds)
-
-      return(prds)
-    },
-
-    # Predict a single base learner
-    predict_bl = function(newdata, oml_task_ids = NULL, baselearner = NULL, rescale) {
-      use_surrogates = self$subset_surrogates(oml_task_ids, baselearner)
-      prds = lapply(self$surrogates[use_surrogates], function(x) x$predict(newdata, rescale))
-      prds = do.call("cbind", prds)
-      return(prds)
-    },
-
-    # Predict on the held-out data.
-    evaluate_holdout_task = function(newdata) {
-      self$predict(newdata, self$holdout_task_id, NULL)
-    },
-    set_holdout_task = function(oml_task_id) {
-      assert_subset(oml_task_id, self$oml_task_ids)
-      self$holdout_task_id = oml_task_id
-      self$active = !(self$oml_task_ids %in% oml_task_id)
-    },
-    aggfun_ = function(x) {
-      lapply(x, function(y) {
-        apply(y, 1, mean)
-      })
-    }
+    }  
   ),
+
   active = list(
-    surrogates_active = function() self$surrogates[self$active],
-    oml_task_ids_active = function() unique(vnapply(self$surrogates_active, function(x) x$oml_task_id)),
-    baselearners = function() vcapply(self$surrogates, function(x) x$base_learner),
+    base_learners = function() vcapply(self$surrogates, function(x) x$base_learner),
     measures = function() vcapply(self$surrogates, function(x) x$eval_measure),
-    param_names = function() lapply(self$surrogates_active, function(x) x$param_names),
-    surrogate_learner = function() vcapply(self$surrogates, function(x) {x$surrogate_learner$short.name}),
-    aggfun = function(fun) {
-      if(missing(val)) self$aggfun_
-      else self$aggfun_ = assert_function(fun)
-    },
+    surrogate_learners = function() vcapply(self$surrogates, function(x) {x$surrogate_learner$short.name}),
     scalings = function() {
-      unique(sapply(self$surrogates, function(x) x$scaler$scaler_name))
+      scales = unique(sapply(self$surrogates, function(x) x$scaler$scaler_name))
+      assert_true(length(scales) == 1L)
+      return(scales)
     }
   )
 )
+
+
+

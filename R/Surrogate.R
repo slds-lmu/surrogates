@@ -218,6 +218,7 @@ Surrogate = R6Class("Surrogate",
 
       # In case no data exists, we always sample 0 performance
       if (nrow(self$data) == 0L) {
+        warning("No rows found in data")
         self$fit_constant_model()
       }
 

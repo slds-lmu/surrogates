@@ -6,7 +6,6 @@
 #' @param filepath :: `character()`\cr
 #' @export
 load_from_csv = function(self) {
-  browser()
   # Load and rename column
   data = fread(self$data_source)
   colnames(data)[colnames(data) == self$eval_measure] = "performance"
