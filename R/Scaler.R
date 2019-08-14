@@ -5,18 +5,21 @@ Scaler = R6Class("Scaler",
     method = NULL,
     values = NULL,
     initialize = function(method = "range") {
-      assert_choice(method, c("standardize", "range"))
+      assert_choice(method, c("standardize", "range", "none"))
       self$method = method
     },
-    scale = function(data, oml_task_id, runtime) {
+    scale = function(data, oml_task_id) {
       x = data[data$task_id == oml_task_id, ]$performance
       if (length(x) > 0) {
         # Save transformation
         self$values = switch(self$method,
           "standardize" = c("mean" = mean(x), "sd" = sd(x)),
-          "range" = range(x)
+          "range" = range(x),
+          "none" = 0
         )
-        BBmisc::normalize(x, self$method, on.constant = "quiet")
+        if (self$method != "none")
+          x = BBmisc::normalize(x, self$method, on.constant = "quiet")
+        return(x)
       }
     },
     rescale = function(x) {
