@@ -8,7 +8,7 @@ Scaler = R6Class("Scaler",
       assert_choice(method, c("standardize", "range", "none"))
       self$method = method
     },
-    scale = function(data, oml_task_id) {
+    scale = function(data, oml_task_id, ...) {
       x = data[data$task_id == oml_task_id, ]$performance
       if (length(x) > 0) {
         # Save transformation
