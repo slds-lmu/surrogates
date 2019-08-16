@@ -5,4 +5,5 @@
 #' @import ParamHelpers
 #' @import fail
 #' @import stringi
+#' @import data.table
 NULL

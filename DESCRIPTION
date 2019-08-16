@@ -21,7 +21,6 @@ Suggests:
     glmnet,
     OpenML,
     farff,
-    data.table,
     dplyr,
     tidyr
 Imports:
@@ -29,10 +28,11 @@ Imports:
     ParamHelpers,
     stringi,
     fail,
+    data.table,
     checkmate
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
-Collate: 
+Collate:
     'Scaler.R'
     'load_functions.R'
     'Surrogate.R'
