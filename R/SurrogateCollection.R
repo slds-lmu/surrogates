@@ -77,10 +77,10 @@ SurrogateCollection = R6Class("SurrogateCollection",
       # If no base learner is given, all else only specific bl
       if (is.null(baselearner)) use_bls  = seq_along(self$surrogates)
       else use_bls = which(self$base_learners %in% baselearner)
-      
+
       # Return applicable surrogates
       Reduce(intersect, list(use_task, use_bls))
-    }  
+    }
   ),
 
   active = list(
