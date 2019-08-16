@@ -32,7 +32,7 @@ Scaler = R6Class("Scaler",
   ),
   active = list(
     scaler_name = function() {self$method}
-  )
+  )1
 )
 
 #' Scales data according to a given method
@@ -50,6 +50,8 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
       self$power = assert_number(power)
     },
     scale = function(data, oml_task_id, runtime) {
+      requireNamespace("data.table")
+      setDT(data)
       x = data[data$task_id == oml_task_id, ]$performance
       data = data[data$task_id == oml_task_id, .(runtime = (runtime + abs(min(runtime))), task_id, learner_id)]
       time = data[, .(runtime = runtime / max(runtime)), by = .(task_id, learner_id)][["runtime"]]
