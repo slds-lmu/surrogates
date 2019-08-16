@@ -11,7 +11,6 @@ Scaler = R6Class("Scaler",
     scale = function(data, oml_task_id, ...) {
       x = data[data$task_id == oml_task_id, ]$performance
       if (length(x) == 0) stop("No observations in performance")
-
       if (is.null(self$values)) {
         # Save transformation
         self$values = switch(self$method,
@@ -22,11 +21,13 @@ Scaler = R6Class("Scaler",
         if (self$method != "none") x = BBmisc::normalize(x, self$method, on.constant = "quiet")
       } else {
         if (self$method == "range") {
-          div = (self$values[["max"]] - self$values[["max"]])
+          div = self$values[["max"]] - self$values[["min"]]
           if (div == 0) x = 0
           else x = (x - self$values[["min"]]) / div
         } else stop("Error, other methods not implemented yet")
       }
+      if(any(x > 1)) browser()
+      assert_numeric(x, lower = 0, upper = 1)
       return(x)
     },
     rescale = function(x) {
