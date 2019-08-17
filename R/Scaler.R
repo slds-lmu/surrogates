@@ -26,8 +26,6 @@ Scaler = R6Class("Scaler",
           else x = (x - self$values[["min"]]) / div
         } else stop("Error, other methods not implemented yet")
       }
-      if(any(x > 1)) browser()
-      assert_numeric(x, lower = 0, upper = 1)
       return(x)
     },
     rescale = function(x) {
@@ -46,6 +44,7 @@ Scaler = R6Class("Scaler",
     scaler_name = function() {self$method}
   )
 )
+
 
 #' Scales data according to a given method
 #' dividing by a function of the time it took to train the model.
