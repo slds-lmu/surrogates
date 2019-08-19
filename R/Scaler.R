@@ -10,7 +10,6 @@ Scaler = R6Class("Scaler",
     },
     scale = function(data, oml_task_id, ...) {
       x = data[data$task_id == oml_task_id, ]$performance
-      if (length(x) == 0) stop("No observations in performance")
       if (is.null(self$values)) {
         # Save transformation
         self$values = switch(self$method,
@@ -38,6 +37,7 @@ Scaler = R6Class("Scaler",
     set_values = function(x) {
       assert_data_frame(x, nrows = 1, types = "numeric")
       self$values = unlist(x)
+      invisible(self)
     }
   ),
   active = list(
