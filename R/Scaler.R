@@ -61,8 +61,8 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
       self$power = assert_number(power)
     },
     scale = function(data, oml_task_id, runtime) {
-      x = data[data$task_id == oml_task_id, ]$performance
       data = data[data$task_id == oml_task_id, ]
+      x = data$performance
 
       if (is.null(self$values)) {
         # Save transformation
@@ -74,18 +74,18 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
         if (self$method != "none") x = BBmisc::normalize(x, self$method, on.constant = "quiet")
       } else {
         if (self$method == "range") {
-          div = (self$values[["max"]] - self$values[["max"]])
+          div = (self$values[["max"]] - self$values[["min"]])
           if (div == 0) x = 0
           else x = (x - self$values[["min"]]) / div
         } else stop("Error, other methods not implemented yet")
       }
 
       # Scale runtime to [min/max; 1]
-      data$runtime = data$runtime + abs(min(data$runtime))
+      data$runtime = data$runtime + abs(min(0, min(data$runtime))) + 1
       time = data[, .(runtime = runtime / max(runtime)), by = .(task_id, learner_id)][["runtime"]]
 
       # Either just use sqrt scaling or log(x, base)^pow
-      if (base == 1) x / (time^self$power)
+      if (self$base == 1) x / (time^self$power)
       else x / (log(time + self$base, base = self$base)^self$power)
     },
     rescale = function(x) {
