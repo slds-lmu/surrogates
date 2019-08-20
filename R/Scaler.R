@@ -53,17 +53,16 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
   public = list(
     power = NULL,
     base = NULL,
-    method = NULL,
-    values = NULL,
+    runtime_values = NULL,
+
     initialize = function(method = "range", base = 1, power = 0.5) {
       super$initialize(method)
       self$base = assert_number(base)
       self$power = assert_number(power)
     },
-    scale = function(data, oml_task_id, runtime) {
+    scale = function(data, oml_task_id) {
       data = data[data$task_id == oml_task_id, ]
       x = data$performance
-
       if (is.null(self$values)) {
         # Save transformation
         self$values = switch(self$method,
@@ -79,10 +78,8 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
           else x = (x - self$values[["min"]]) / div
         } else stop("Error, other methods not implemented yet")
       }
-
       # Scale runtime to [min/max; 1]
-      data$runtime = data$runtime + abs(min(0, min(data$runtime))) + 1
-      time = data[, .(runtime = runtime / max(runtime)), by = .(task_id, learner_id)][["runtime"]]
+      time = data[, .(runtime = runtime / self$runtime_values[["max"]]), by = .(task_id)][["runtime"]]
 
       # Either just use sqrt scaling or log(x, base)^pow
       if (self$base == 1) x / (time^self$power)
@@ -90,6 +87,11 @@ ScalerTimeCrit = R6Class("ScalerTimeCrit",
     },
     rescale = function(x) {
       BBmisc::normalize(x, "range", self$values)
+    },
+    set_runtime_values = function(x) {
+      assert_data_frame(x, nrows = 1, types = "numeric")
+      self$runtime_values = unlist(x)
+      invisible(self)
     }
   ),
   active = list(
