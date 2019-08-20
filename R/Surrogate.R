@@ -122,7 +122,7 @@ Surrogate = R6Class("Surrogate",
     rtask = NULL,
     model = NULL,
     resample = NULL,
-    scaler = Scaler$new(),
+    scaler = NULL,
     load_fun = NULL,
 
     save_path = ".",
@@ -133,14 +133,13 @@ Surrogate = R6Class("Surrogate",
     cst_performance_ = 0,
 
     initialize = function(oml_task_id, base_learner, eval_measure, surrogate_learner,
-          param_set, use_cache = TRUE, save_path, data_source, load_fun, scaler) {
+          param_set, use_cache = TRUE, save_path, data_source, load_fun, scaler = Scaler$new()) {
 
       # Info used for sub-setting the data:
       self$oml_task_id = assert_int(oml_task_id)
       self$base_learner = assert_string(base_learner)
       self$eval_measure = assert_string(eval_measure)
-
-      if (!missing(scaler)) self$scaler = scaler
+      self$scaler = assert_class(scaler, "Scaler")
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
 
       self$use_cache = checkmate::assert_flag(use_cache)
