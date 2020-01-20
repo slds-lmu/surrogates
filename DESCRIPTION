@@ -24,6 +24,7 @@ Suggests:
     dplyr,
     tidyr
 Imports:
+    mlr3misc,
     BBmisc,
     ParamHelpers,
     stringi,

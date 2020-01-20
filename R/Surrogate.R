@@ -54,41 +54,12 @@
 #' Loaded data stored in a data.frame
 #'
 #' @section Methods:
-#' TODO: define missing return types
 #' * `print()`\cr
 #' `()` -> `NULL`\cr
 #' Description of the method
 #'
 #' * `predict(newdata, rescale = FALSE)`\cr
 #' (`data.frame()`, `logical()`) -> `Return Type`\cr
-#' Description of the method
-#'
-#' * `file_rtask_to_disk()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `file_model_to_disk()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `file_resample_to_disk()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `acquire_object()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `acquire_rtask()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `acquire_model()`\cr
-#' `()` -> \cr
-#' Description of the method
-#'
-#' * `acquire_resample()`\cr
-#' `()` -> \cr
 #' Description of the method
 #'
 #' * `fail_path(handle_prefix)`\cr
@@ -124,14 +95,15 @@ Surrogate = R6Class("Surrogate",
     load_fun = NULL,
 
     save_path = ".",
+    fail_dict = NULL,
     data_source = NULL,
     data = NULL,
 
     param_names = NULL,
 
-    initialize = function(oml_task_id, base_learner, eval_measure, 
-      surrogate_learner, param_set, save_path, data_source, 
-      load_fun, resample = FALSE, scaler = Scaler$new(),) {
+    initialize = function(oml_task_id, base_learner, eval_measure,
+      surrogate_learner, param_set, save_path, data_source,
+      load_fun, resample = FALSE, scaler = Scaler$new()) {
 
       # Info used for sub-setting the data:
       self$oml_task_id = assert_int(oml_task_id)
@@ -141,7 +113,7 @@ Surrogate = R6Class("Surrogate",
       self$surrogate_learner = mlr::checkLearner(surrogate_learner)
 
       if (!missing(save_path)) self$save_path = save_path
-      self$save_path = fail::fail(self$fail_path())
+      self$fail_dict = fail::fail(self$fail_path())
       self$data_source = assert_string(data_source, null.ok = TRUE)
       self$load_fun = assert_function(load_fun)
 
@@ -157,20 +129,28 @@ Surrogate = R6Class("Surrogate",
       else stop("Input file doesn't exist!")
 
       catf("<Obtaining Task>")
-      tsk = makeRegrTask(id = as.character(self$oml_task_id), data = as.data.frame(self$data), target = "performance")
-      self$rtask = removeConstantFeatures(tsk)
+      if (self$key_task %in% self$fail_dict$ls()) {
+        self$rtask = self$fail_dict$get(self$key_task)
+      } else {
+        tsk = makeRegrTask(id = as.character(self$oml_task_id), data = as.data.frame(self$data), target = "performance")
+        self$rtask = removeConstantFeatures(tsk)
+        self$fail_dict$put(keys = self$key_task, self$rtask)
+      }
 
       catf("<Obtaining Model>")
-      self$model = train(self$surrogate_learner, self$rtask)
-
-      catf("<Writing model to disk>")
-      self$save_path$put(keys = self$key_model, self$model)
+      if (self$key_model %in% self$fail_dict$ls()) {
+        self$model = self$fail_dict$get(self$key_model)
+      } else {
+        self$model = train(self$surrogate_learner, self$rtask)
+        catf("<Writing model to disk>")
+        self$fail_dict$put(keys = self$key_model, self$model)
+      }
 
       if (self$resample) {
         catf("<Obtaining Resampling>")
-        self$resample = resample(self$surrogate_learner, self$rtask, cv, measures)
+        self$resample = resample(self$surrogate_learner, self$rtask, cv3, list(spearmanrho, rsq, rmse))
         catf("<Writing resample to disk>")
-        self$save_path$put(keys = self$key_resample, self$resample)
+        self$fail_dict$put(keys = self$key_resample, self$resample)
       }
 
       invisible(self)
@@ -179,8 +159,7 @@ Surrogate = R6Class("Surrogate",
     predict = function(newdata, rescale = FALSE) {
       if(is.null(self$model)) self$train()
       prd = predict(self$model, newdata = newdata)$data$response
-      if (rescale)
-        prd = self$scaler$rescale(prd)
+      if (rescale) prd = self$scaler$rescale(prd)
       return(prd)
     },
 
@@ -193,12 +172,14 @@ Surrogate = R6Class("Surrogate",
     },
 
     fail_path = function() {
-      paste(self$save_path, "/surrogate", self$base_learner,
-        self$eval_measure, self$scaler$scaler_name, 
-        paste0(self$surrogate_learner$short.name),
-        sep = "_"
-      )
-    },
-
+      paste(self$save_path, "surrogate", self$base_learner,
+        self$eval_measure, self$scaler$scaler_name,
+        paste0(self$surrogate_learner$short.name), sep = "/")
+    }
+  ),
+  active = list(
+    key_task  = function() {stringi::stri_paste(self$fail_path(), "/tasks/")},
+    key_rsmp  = function() {stringi::stri_paste(self$fail_path(), "/rsmp/")},
+    key_model = function() {stringi::stri_paste(self$fail_path(), "/models/")}
   )
 )

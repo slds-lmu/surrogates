@@ -17,6 +17,11 @@ What we want to achieve:
 ## Surrogates
 
 ```r
+library(mlr)
+library(surrogates)
+```
+
+```r
 # Train surrogate from a local file.
 file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
 s = Surrogate$new(oml_task_id = 9952L, base_learner = "glmnet", data_source = file,
@@ -25,7 +30,11 @@ s = Surrogate$new(oml_task_id = 9952L, base_learner = "glmnet", data_source = fi
 s$train()
 prd = s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1), "alpha" = 1:101))
 ```
+
 ## SurrogateCollection
+
+Alternatively, we can store multiple surrogates in a `SurrogateCollection`.
+This allows us to predict on multiple surrogates at the same time.
 
 ```r
 file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
@@ -63,11 +72,17 @@ SURROGATE_LEARNERS = c("regr.ranger", "regr.fixcubist")
 
 ## Benchmark:
 
+On some occasions, the relative speed for surrogate prediction might be important.
+`Cubist` seems to be fast and precise.
+
 ```r
 # Use cubist as a learner.
 source("https://raw.githubusercontent.com/pfistfl/mlr-extralearner/master/R/RLearner_regr_fixcubist.R")
+
 file = system.file("extdata", "glmnet_sample.csv", package = "surrogates")
-learners = list(makeLearner("regr.ranger", num.trees = 20L), makeLearner("regr.fixcubist", committees = 20L), makeLearner("regr.RcppHNSW"))
+learners = list(
+  makeLearner("regr.ranger", num.trees = 20L),
+  makeLearner("regr.fixcubist", committees = 20L))
 
 scs = lapply(learners, function(surr) {
   surrs = lapply(c(3, 37, 43, 49), function(tid) {
@@ -85,7 +100,6 @@ library(microbenchmark)
 microbenchmark(
   "ranger" = scs[[1]]$predict(df),
   "cubist" = scs[[2]]$predict(df),
-  "hnsw" = scs[[3]]$predict(df),
   times = 2
 )
 ```
