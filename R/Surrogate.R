@@ -212,7 +212,7 @@ Surrogate = R6Class("Surrogate",
 
     file_rtask_to_disk = function() {
       # Load the data
-      if (file.exists(self$data_source))
+      if (file.exists(self$data_source) | stringi::stri_startswith_fixed(self$data_source, "http"))
         self$data = self$load_fun(self)
       else stop("Input file doesn't exist!")
 

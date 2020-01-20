@@ -43,7 +43,6 @@ load_from_arff = function(filepath) {
   return(data)
 }
 
-# FIXME
 #' @title Reading data
 #'
 #' @description

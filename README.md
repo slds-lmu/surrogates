@@ -89,3 +89,42 @@ microbenchmark(
   times = 2
 )
 ```
+
+
+## Different Data Sources
+
+```r
+
+file = "../surrogates_data/data/rbv2_mlr_classif.glmnet.arff"
+
+arff = function(self) {
+  requireNamespace("data.table")
+  requireNamespace("farff")
+  # Load and rename column
+  data = data.table(farff::readARFF(self$data_source))
+  data[, "task_id" := gsub(dataset, pattern = "(.*)\\.([^.]*)$", replacement = "\\2")]
+  colnames(data)[colnames(data) == self$eval_measure] = "performance"
+  if (!(self$oml_task_id %in% data$task_id)) stopf("task_id: %s not found in data", self$oml_task_id)
+  # Scale performance column
+  data$performance[data$task_id == self$oml_task_id] = self$scaler$scale(data, oml_task_id = self$oml_task_id)
+  # Subset columns, only relevant data
+  self$param_names = intersect(getParamIds(self$param_set), colnames(data))
+  data = data[data$task_id == self$oml_task_id, c("performance", self$param_names), with = FALSE]
+  to_factor =  names(Filter(is.character, data))
+  data[, to_factor] = data[, lapply(.SD, as.factor), .SDcols = to_factor]
+  return(data)
+}
+surrs = lapply(c(3, 37), function(tid) {
+  s = Surrogate$new(oml_task_id = tid, base_learner = "glmnet", data_source = file,
+    param_set = get_param_set("rbv2_classif.glmnet"), eval_measure = "perf.logloss",
+    surrogate_learner = "regr.ranger", load_fun = arff)
+})
+sc = SurrogateCollection$new(surrs)
+sc$predict(list("glmnet" =
+  data.frame("alpha" = seq(from = 0, to = 10, by = 0.1), "s" = 1:101, num.impute.selected.cpo = "impute.median")
+))
+
+
+
+
+```
