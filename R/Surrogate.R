@@ -162,7 +162,7 @@ Surrogate = R6Class("Surrogate",
     predict = function(newdata, rescale = FALSE) {
       newdata = private$convert_data_types_for_ps(newdata)
       if (is.null(self$model)) self$train()
-      prd = predict(self$model, newdata = newdata)$data$response
+      prd = predict(self$model, newdata = data.frame(newdata))$data$response
       if (rescale)
         prd = self$scaler$rescale(prd)
       return(prd)
@@ -284,7 +284,8 @@ Surrogate = R6Class("Surrogate",
       classes = sapply(data[, setdiff(colnames(data), "performance")], class)
       typedf = ParamHelpers:::getParSetPrintData(self$param_set)
       to_int = rownames(typedf[typedf$Type == "integer", ])
-      data[, to_int] = data[, lapply(.SD, as.integer), .SDcols = to_int]
+      if (length(to_int) > 0L)
+        data[, to_int] = data[, lapply(.SD, as.integer), .SDcols = to_int]
       return(data)
     },
     fixup_learner = function() {

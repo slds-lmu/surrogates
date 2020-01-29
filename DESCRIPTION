@@ -30,8 +30,8 @@ Imports:
     fail,
     data.table,
     checkmate
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.1.1
+Roxygen: list(markdown = TRUE, r6 = FALSE)
+RoxygenNote: 7.0.2
 Collate:
     'Scaler.R'
     'load_functions.R'
