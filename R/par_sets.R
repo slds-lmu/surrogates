@@ -209,4 +209,37 @@ param_sets$add("rbv2_classif.xgboost",
     makeNumericParam("skip_drop", lower =  0, upper = 1, requires = quote(booster %in% c("dart")))
 ))
 
+param_sets$add("sklearn_svc",
+  makeParamSet(
+    makeNumericParam("svc__C", lower = -5, upper = 15, trafo = function(x) 2^x),
+    makeNumericParam("svc__coef0", lower = -1, upper = 1),
+    makeIntegerParam("svc__degree", lower = 1, upper = 5),
+    makeNumericParam("svc__gamma", lower = -15, upper = 3, trafo = function(x) 2^x),
+    makeDiscreteParam("svc__kernel", values = c("poly", "sigmoid", "rbf")),
+    makeDiscreteParam("columntransformer__numeric__imputer__strategy", values = c("mean", "median", "most_frequent")),
+    makeDiscreteParam("svc__shrinking", values = c("True", "False")),
+    makeNumericParam("svc__tol", lower = -5, upper = -1, trafo = function(x) 10^x)
+))
+
+
+param_sets$add("sklearn_adaboost",
+  makeParamSet(
+    makeDiscreteParam("svc__algorithm", values = c("SAMME", "SAMME.R")),
+    makeDiscreteParam("columntransformer__numeric__imputer__strategy", values = c("mean", "median", "most_frequent")),
+    makeIntegerParam("svc__n_estimators", lower = 50, upper = 500),
+    makeNumericParam("svc__learning_rate", lower = -6.643856, upper = 1, trafo = function(x) 2^x),
+    makeNumericParam("svc__max_depth", lower = 1, upper = 10)
+))
+
+param_sets$add("sklearn_random_forest",
+  makeParamSet(
+    makeDiscreteParam("svc__bootstrap", values = c("True", "False")),
+    makeDiscreteParam("svc__criterion", values = c("entropy", "gini")),
+    makeNumericParam("svc__max_features", lower = 0.01, upper = 1),
+    makeIntegerParam("svc__min_leaf", lower = 1, upper = 20),
+    makeIntegerParam("svc__min_split", lower = 2, upper = 20),
+    makeDiscreteParam("columntransformer__numeric__imputer__strategy", values = c("mean", "median", "most_frequent"))
+))
+
 get_param_set = function(key) {param_sets$get(key)}
+

@@ -6,3 +6,4 @@ man/
 surrogates.Rproj
 surrogates/*
 tests/testthat/surrogates/*
+.RData

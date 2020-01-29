@@ -194,3 +194,45 @@ sc = SurrogateCollection$new(surrs)
 df = generateRandomDesign(10L, par.set = get_param_set("rbv2_classif.xgboost"), trafo = TRUE)
 sc$predict(list("xgboost" = df))
 ```
+
+## sklearn svc
+
+```r
+# Helper functions to read data and obtain task_ids
+get_task_ids = function(file) {
+  df = data.table(farff::readARFF(file))
+  task_ids = as.integer(unique(df$task_id))
+}
+
+arff = function(self) {
+  requireNamespace("data.table")
+  requireNamespace("farff")
+  # Load and rename column
+  data = data.table(farff::readARFF(self$data_source))
+  colnames(data)[colnames(data) == self$eval_measure] = "performance"
+  if (!(self$oml_task_id %in% data$task_id)) stopf("task_id: %s not found in data", self$oml_task_id)
+  # Scale performance column
+  data$performance[data$task_id == self$oml_task_id] = self$scaler$scale(data, oml_task_id = self$oml_task_id)
+  # Subset columns, only relevant data
+  self$param_names = intersect(getParamIds(self$param_set), colnames(data))
+  data = data[data$task_id == self$oml_task_id, c("performance", self$param_names), with = FALSE]
+  return(data)
+}
+```
+
+```r
+file = "../surrogates_data/data/sklearn_svc.arff"
+task_ids = get_task_ids(file)
+lrn = makeLearner("regr.ranger", num.trees = 64L)
+
+surrs = lapply(task_ids, function(tid) {
+  s = Surrogate$new(oml_task_id = tid, base_learner = "svc", data_source = file,
+    param_set = get_param_set("sklearn_svc"), eval_measure = "predictive_accuracy",
+    surrogate_learner = lrn, load_fun = arff)
+})
+
+sc = SurrogateCollection$new(surrs)
+
+df = generateRandomDesign(10L, par.set = get_param_set("sklearn_svc"), trafo = TRUE)
+sc$predict(list("svc" = df))
+```

@@ -281,11 +281,14 @@ Surrogate = R6Class("Surrogate",
   private = list(
     convert_data_types_for_ps = function(data) {
       setDT(data)
-      classes = sapply(data[, setdiff(colnames(data), "performance")], class)
       typedf = ParamHelpers:::getParSetPrintData(self$param_set)
       to_int = rownames(typedf[typedf$Type == "integer", ])
       if (length(to_int) > 0L)
         data[, to_int] = data[, lapply(.SD, as.integer), .SDcols = to_int]
+
+      to_factor =  names(Filter(is.character, data))
+      if (length(to_factor) > 0L)
+        data[, to_factor] = data[, lapply(.SD, as.factor), .SDcols = to_factor]
       return(data)
     },
     fixup_learner = function() {
