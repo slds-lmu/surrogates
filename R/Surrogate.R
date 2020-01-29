@@ -160,7 +160,8 @@ Surrogate = R6Class("Surrogate",
     },
 
     predict = function(newdata, rescale = FALSE) {
-      if(is.null(self$model)) self$train()
+      newdata = private$convert_data_types_for_ps(newdata)
+      if (is.null(self$model)) self$train()
       prd = predict(self$model, newdata = newdata)$data$response
       if (rescale)
         prd = self$scaler$rescale(prd)
@@ -197,6 +198,7 @@ Surrogate = R6Class("Surrogate",
     file_model_to_disk = function() {
       self$acquire_rtask()
       catf("<Obtaining Model>")
+      private$fixup_learner()
       self$model = train(self$surrogate_learner, self$rtask)
       catf("<Writing model to disk>")
       if (self$use_cache) self$save_path$put(keys = self$key_model, self$model)
@@ -205,6 +207,7 @@ Surrogate = R6Class("Surrogate",
     file_resample_to_disk = function(cv = cv3, measures = list(rmse, spearmanrho, kendalltau, expvar, timepredict)) {
       self$acquire_rtask()
       catf("<Obtaining Resampling>")
+      private$fixup_learner()
       self$resample = resample(self$surrogate_learner, self$rtask, cv, measures)
       catf("<Writing resample to disk>")
       if (self$use_cache) self$save_path$put(keys = self$key_resample, self$resample)
@@ -221,9 +224,8 @@ Surrogate = R6Class("Surrogate",
         warning("No rows found in data")
         self$fit_constant_model()
       }
-
-      # attributes(d$target) = NULL # https://github.com/imbs-hl/ranger/issues/354
       catf("<Obtaining Task>")
+      self$data = private$convert_data_types_for_ps(self$data)
       tsk = makeRegrTask(id = as.character(self$oml_task_id), data = as.data.frame(self$data), target = "performance")
       self$rtask = removeConstantFeatures(tsk)
 
@@ -276,5 +278,23 @@ Surrogate = R6Class("Surrogate",
     }
   ),
 
-  private = list()
+  private = list(
+    convert_data_types_for_ps = function(data) {
+      setDT(data)
+      classes = sapply(data[, setdiff(colnames(data), "performance")], class)
+      typedf = ParamHelpers:::getParSetPrintData(self$param_set)
+      to_int = rownames(typedf[typedf$Type == "integer", ])
+      data[, to_int] = data[, lapply(.SD, as.integer), .SDcols = to_int]
+      return(data)
+    },
+    fixup_learner = function() {
+      if (self$rtask$task.desc$has.missings)
+        self$surrogate_learner =
+          makeImputeWrapper(self$surrogate_learner, list(
+            numeric = imputeConstant(-9999),
+            integer = imputeConstant(-9999L),
+            factor = imputeConstant("_NA_")
+        ))
+    }
+  )
 )

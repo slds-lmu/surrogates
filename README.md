@@ -25,6 +25,7 @@ s = Surrogate$new(oml_task_id = 9952L, base_learner = "glmnet", data_source = fi
 s$train()
 prd = s$predict(data.frame("lambda" = seq(from = 0, to = 10, by = 0.1), "alpha" = 1:101))
 ```
+
 ## SurrogateCollection
 
 ```r
@@ -97,12 +98,23 @@ microbenchmark(
 
 file = "../surrogates_data/data/rbv2_mlr_classif.glmnet.arff"
 
+split_dataset_col = function(df) {
+  df[, "task_id" := gsub(dataset, pattern = "(.*)\\.([^.]*)$", replacement = "\\2")]
+  return(df)
+}
+
+get_task_ids = function(file) {
+  df = data.table(farff::readARFF(file))
+  df = split_dataset_col(df)
+  task_ids = unique(df$task_id)
+}
+
 arff = function(self) {
   requireNamespace("data.table")
   requireNamespace("farff")
   # Load and rename column
   data = data.table(farff::readARFF(self$data_source))
-  data[, "task_id" := gsub(dataset, pattern = "(.*)\\.([^.]*)$", replacement = "\\2")]
+  data = split_dataset_col(data)
   colnames(data)[colnames(data) == self$eval_measure] = "performance"
   if (!(self$oml_task_id %in% data$task_id)) stopf("task_id: %s not found in data", self$oml_task_id)
   # Scale performance column
@@ -114,17 +126,71 @@ arff = function(self) {
   data[, to_factor] = data[, lapply(.SD, as.factor), .SDcols = to_factor]
   return(data)
 }
-surrs = lapply(c(3, 37), function(tid) {
+
+task_ids = get_task_ids(file)
+
+surrs = lapply(task_ids, function(tid) {
   s = Surrogate$new(oml_task_id = tid, base_learner = "glmnet", data_source = file,
     param_set = get_param_set("rbv2_classif.glmnet"), eval_measure = "perf.logloss",
     surrogate_learner = "regr.ranger", load_fun = arff)
 })
+
 sc = SurrogateCollection$new(surrs)
+
 sc$predict(list("glmnet" =
   data.frame("alpha" = seq(from = 0, to = 10, by = 0.1), "s" = 1:101, num.impute.selected.cpo = "impute.median")
 ))
+```
+
+## xgboost
 
 
+```r
+# Helper functions to read data and obtain task_ids
 
+split_dataset_col = function(df) {
+  df[, "task_id" := gsub(dataset, pattern = "(.*)\\.([^.]*)$", replacement = "\\2")]
+  return(df)
+}
 
+get_task_ids = function(file) {
+  df = data.table(farff::readARFF(file))
+  df = split_dataset_col(df)
+  task_ids = as.integer(unique(df$task_id))
+}
+
+arff = function(self) {
+  requireNamespace("data.table")
+  requireNamespace("farff")
+  # Load and rename column
+  data = data.table(farff::readARFF(self$data_source))
+  data = split_dataset_col(data)
+  colnames(data)[colnames(data) == self$eval_measure] = "performance"
+  if (!(self$oml_task_id %in% data$task_id)) stopf("task_id: %s not found in data", self$oml_task_id)
+  # Scale performance column
+  data$performance[data$task_id == self$oml_task_id] = self$scaler$scale(data, oml_task_id = self$oml_task_id)
+  # Subset columns, only relevant data
+  self$param_names = intersect(getParamIds(self$param_set), colnames(data))
+  data = data[data$task_id == self$oml_task_id, c("performance", self$param_names), with = FALSE]
+  to_factor =  names(Filter(is.character, data))
+  data[, to_factor] = data[, lapply(.SD, as.factor), .SDcols = to_factor]
+  return(data)
+}
+```
+
+```r
+file = "../surrogates_data/data/rbv2_mlr_classif.xgboost_minimal.arff"
+task_ids = get_task_ids(file)
+lrn = makeLearner("regr.ranger", num.trees = 64L)
+
+surrs = lapply(task_ids, function(tid) {
+  s = Surrogate$new(oml_task_id = tid, base_learner = "xgboost", data_source = file,
+    param_set = get_param_set("rbv2_classif.xgboost"), eval_measure = "perf.logloss",
+    surrogate_learner = lrn, load_fun = arff)
+})
+
+sc = SurrogateCollection$new(surrs)
+
+df = generateRandomDesign(10L, par.set = get_param_set("rbv2_classif.xgboost"), trafo = TRUE)
+sc$predict(list("xgboost" = df))
 ```
